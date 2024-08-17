@@ -1,10 +1,10 @@
-import { Entity, Column, PrimaryGeneratedColumn, OneToOne, JoinColumn } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, JoinColumn, ManyToOne } from 'typeorm';
 import { TypeVehicle } from './type-vehicle.entity';
 
 @Entity({ name: 'vehicles' })
 export class Vehicle {
-  @PrimaryGeneratedColumn()
-  id: string;
+  @PrimaryGeneratedColumn({ type: 'int', unsigned: true })
+  id: number;
 
   @Column({ unique: true })
   plate: string;
@@ -18,7 +18,7 @@ export class Vehicle {
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   createAt: Date;
 
-  @OneToOne(() => TypeVehicle)
-  @JoinColumn()
-  typeVehicle: TypeVehicle;
+  @ManyToOne(() => TypeVehicle, (typeVehicle) => typeVehicle.id)
+  @JoinColumn({ name: 'typeVehicleId' })
+  typeVehicleId: TypeVehicle;
 }
