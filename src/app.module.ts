@@ -6,6 +6,8 @@ import { AuthModule } from './auth/auth.module';
 import { VehiclesModule } from './vehicles/vehicles.module';
 import { WashersModule } from './washers/washers.module';
 import { ProductsModule } from './products/products.module';
+import { OurServicesModule } from './our-services/our-services.module';
+import { SalesModule } from './sales/sales.module';
 
 @Module({
   imports: [
@@ -23,6 +25,8 @@ import { ProductsModule } from './products/products.module';
     VehiclesModule,
     WashersModule,
     ProductsModule,
+    OurServicesModule,
+    SalesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -1,8 +1,10 @@
-import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, OneToMany } from 'typeorm';
+import { Sale } from './sales.entity';
 
 @Entity({ name: 'products' })
 export class Product {
   @PrimaryGeneratedColumn({ type: 'int', unsigned: true })
+  @OneToMany(() => Sale, (sale) => sale.productId)
   id: number;
 
   @Column()
