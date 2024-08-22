@@ -1,8 +1,8 @@
 import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, JoinColumn } from 'typeorm';
 import { Product } from './products.entity';
 
-@Entity({ name: 'sales' })
-export class Sale {
+@Entity({ name: 'shopping' })
+export class Shopping {
   @PrimaryGeneratedColumn({ type: 'int', unsigned: true })
   id: number;
 

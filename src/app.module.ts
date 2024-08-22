@@ -11,6 +11,7 @@ import { SalesModule } from './sales/sales.module';
 import { ClientsModule } from './clients/clients.module';
 import { AttentionsModule } from './attentions/attentions.module';
 import { ParkingsModule } from './parkings/parkings.module';
+import { ShoppingModule } from './shopping/shopping.module';
 
 @Module({
   imports: [
@@ -33,6 +34,7 @@ import { ParkingsModule } from './parkings/parkings.module';
     ClientsModule,
     AttentionsModule,
     ParkingsModule,
+    ShoppingModule,
   ],
   controllers: [AppController],
   providers: [AppService],
