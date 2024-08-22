@@ -1,13 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { OurService } from 'src/entities/our-services.entity';
+import { Service } from 'src/entities/services.entity';
 import { Repository } from 'typeorm';
 import { CreateServiceDto } from './dto/create-service.dto';
 
 @Injectable()
-export class OurServicesService {
+export class ServicesService {
   constructor(
-    @InjectRepository(OurService) private servicesRepository: Repository<OurService>,
+    @InjectRepository(Service) private servicesRepository: Repository<Service>,
   ) {}
 
   async getServices() {

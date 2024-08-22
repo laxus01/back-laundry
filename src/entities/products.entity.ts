@@ -11,10 +11,10 @@ export class Product {
   product: string;
 
   @Column()
-  value_buys: number;
+  valueBuys: number;
 
   @Column()
-  sale_value: number;
+  saleValue: number;
 
   @Column()
   existence: number;

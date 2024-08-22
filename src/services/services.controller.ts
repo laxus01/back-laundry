@@ -1,10 +1,10 @@
 import { Controller, Get, Post, Put, Delete, Param, Body } from '@nestjs/common';
-import { OurServicesService } from './our-services.service';
+import { ServicesService } from './services.service';
 import { CreateServiceDto } from './dto/create-service.dto';
 
-@Controller('our-services')
-export class OurServicesController {
-    constructor(private readonly ourServicesService: OurServicesService) {}
+@Controller('services')
+export class ServicesController {
+    constructor(private readonly ourServicesService: ServicesService) {}
 
     @Get()
     async getServices() {

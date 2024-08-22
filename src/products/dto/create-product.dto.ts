@@ -1,7 +1,7 @@
 export class CreateProductDto {
   product: string;
-  value_buys: number;
-  sale_value: number;
+  valueBuys: number;
+  saleValue: number;
   existence: number;
   state?: number;
 }
