@@ -10,7 +10,7 @@ export class SalesService {
     @InjectRepository(Sale) private saleRepository: Repository<Sale>,
   ) {}
 
-  async getSale() {
+  async getSales() {
     return this.saleRepository.find({ relations: ['productId'] });
   }
 

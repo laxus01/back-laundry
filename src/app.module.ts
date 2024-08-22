@@ -10,6 +10,7 @@ import { ServicesModule } from './services/services.module';
 import { SalesModule } from './sales/sales.module';
 import { ClientsModule } from './clients/clients.module';
 import { AttentionsModule } from './attentions/attentions.module';
+import { ParkingsModule } from './parkings/parkings.module';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { AttentionsModule } from './attentions/attentions.module';
     SalesModule,
     ClientsModule,
     AttentionsModule,
+    ParkingsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

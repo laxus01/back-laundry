@@ -7,8 +7,8 @@ export class SalesController {
     constructor(private readonly salesService: SalesService) {}
 
     @Get()
-    async getSale() {
-        return this.salesService.getSale();
+    async getSales() {
+        return this.salesService.getSales();
     }
 
     @Get(':id')
