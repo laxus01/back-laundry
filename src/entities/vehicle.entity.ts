@@ -1,9 +1,11 @@
-import { Entity, Column, PrimaryGeneratedColumn, JoinColumn, ManyToOne } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, JoinColumn, ManyToOne, OneToMany } from 'typeorm';
 import { TypeVehicle } from './type-vehicle.entity';
+import { Attention } from './attentions.entity';
 
 @Entity({ name: 'vehicles' })
 export class Vehicle {
   @PrimaryGeneratedColumn({ type: 'int', unsigned: true })
+  @OneToMany(() => Attention, (attention) => attention.vehicleId)
   id: number;
 
   @Column({ unique: true })

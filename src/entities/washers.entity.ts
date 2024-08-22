@@ -1,8 +1,10 @@
-import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, OneToMany } from 'typeorm';
+import { Attention } from './attentions.entity';
 
 @Entity({ name: 'washers' })
 export class Washer {
   @PrimaryGeneratedColumn({ type: 'int', unsigned: true })
+  @OneToMany(() => Attention, (attention) => attention.washerId)
   id: number;
 
   @Column()
@@ -11,8 +13,8 @@ export class Washer {
   @Column()
   phone: string;
 
-@Column({ default: 1 })
-state: number;
+  @Column({ default: 1 })
+  state: number;
 
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   createAt: Date;
