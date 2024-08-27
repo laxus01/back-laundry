@@ -1,5 +1,6 @@
 import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, JoinColumn } from 'typeorm';
 import { Vehicle } from './vehicle.entity';
+import { TypeParking } from './type-parking.entity';
 
 @Entity({ name: 'parkings' })
 export class Parking {
@@ -16,10 +17,17 @@ export class Parking {
   value: number;
 
   @Column({ default: 1 })
+  paymentStatus: number;
+
+  @Column({ default: 1 })
   state: number;
 
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   createAt: Date;
+
+  @ManyToOne(() => TypeParking, (typeParking) => typeParking.id)
+  @JoinColumn({ name: 'typeParkingId' })
+  typeParkingId: TypeParking;
 
   @ManyToOne(() => Vehicle, (vehicle) => vehicle.id)
   @JoinColumn({ name: 'vehicleId' })

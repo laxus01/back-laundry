@@ -30,4 +30,9 @@ export class ParkingsController {
     async deleteParking(@Param('id') id: number) {
         return this.parkingsService.deleteParking(id);
     }
+
+    @Post('insert-all-parkings')
+    async insertAllParkings() {
+        return this.parkingsService.insertAllParkings();
+    }
 }
