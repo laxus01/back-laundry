@@ -6,6 +6,7 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const monthlyTaskService = app.get(ParkingsService);
   monthlyTaskService.setupMonthlyCron();
+  app.enableCors(); 
   await app.listen(3000);
 }
 bootstrap();
