@@ -2,7 +2,6 @@ import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, JoinColumn } from 't
 import { Vehicle } from './vehicle.entity';
 import { Washer } from './washers.entity';
 
-
 @Entity({ name: 'attentions' })
 export class Attention {
   @PrimaryGeneratedColumn({ type: 'int', unsigned: true })
@@ -17,11 +16,11 @@ export class Attention {
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   createAt: Date;
 
-  @ManyToOne(() => Vehicle, (vehicle) => vehicle.id)
+  @ManyToOne(() => Vehicle, (vehicle) => vehicle.attentions)
   @JoinColumn({ name: 'vehicleId' })
-  vehicleId: Vehicle;
+  vehicle: Vehicle;
 
-  @ManyToOne(() => Washer, (washer) => washer.id)
+  @ManyToOne(() => Washer, (washer) => washer.attentions)
   @JoinColumn({ name: 'washerId' })
-  washerId: Washer;
+  washer: Washer;
 }

@@ -30,6 +30,7 @@ export class VehiclesService {
     const existingVehicle = await this.vehicleRepository.findOne({
       where: { id },
     });
+    
     if (!existingVehicle) {
       throw new Error('Vehicle not found');
     }

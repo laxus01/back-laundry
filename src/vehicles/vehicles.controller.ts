@@ -34,12 +34,12 @@ export class VehiclesController {
     return this.vehiclesService.createVehicle(createVehicleDto);
   }
 
-  @UseGuards(JwtAuthGuard)
+  //@UseGuards(JwtAuthGuard)
   @Put(':id')
   updateVehicle(
     @Param('id') id: number,
     @Body() updateVehicleDto: CreateVehicleDto,
-  ) {
+  ) {    
     return this.vehiclesService.updateVehicle(id, updateVehicleDto);
   }
 

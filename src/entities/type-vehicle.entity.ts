@@ -1,13 +1,14 @@
 import { Entity, Column, PrimaryGeneratedColumn, OneToMany } from 'typeorm';
 import { Vehicle } from './vehicle.entity';
 
-@Entity({name: 'type-vehicles'})
+@Entity({ name: 'type-vehicles' })
 export class TypeVehicle {
-  @PrimaryGeneratedColumn()
-  @OneToMany(() => Vehicle, (vehicle) => vehicle.typeVehicleId)
+  @PrimaryGeneratedColumn({ type: 'int', unsigned: true })
   id: number;
 
   @Column()
   type: string;
-  
+
+  @OneToMany(() => Vehicle, (vehicle) => vehicle.typeVehicle)
+  vehicles: Vehicle[];
 }

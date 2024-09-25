@@ -25,11 +25,11 @@ export class Parking {
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   createAt: Date;
 
-  @ManyToOne(() => TypeParking, (typeParking) => typeParking.id)
+  @ManyToOne(() => TypeParking, (typeParking) => typeParking.parkings)
   @JoinColumn({ name: 'typeParkingId' })
-  typeParkingId: TypeParking;
+  typeParking: TypeParking;
 
-  @ManyToOne(() => Vehicle, (vehicle) => vehicle.id)
+  @ManyToOne(() => Vehicle, (vehicle) => vehicle.parkings)
   @JoinColumn({ name: 'vehicleId' })
-  vehicleId: Vehicle;
+  vehicle: Vehicle;
 }

@@ -15,7 +15,7 @@ export class Sale {
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   createAt: Date;
 
-  @ManyToOne(() => Product, (product) => product.id)
+  @ManyToOne(() => Product, (product) => product.sales)
   @JoinColumn({ name: 'productId' })
-  productId: Product;
+  product: Product;
 }

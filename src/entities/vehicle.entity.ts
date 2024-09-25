@@ -6,8 +6,6 @@ import { Parking } from './parkings.entity';
 @Entity({ name: 'vehicles' })
 export class Vehicle {
   @PrimaryGeneratedColumn({ type: 'int', unsigned: true })
-  @OneToMany(() => Attention, (attention) => attention.vehicleId)
-  @OneToMany(() => Parking, (parking) => parking.vehicleId)
   id: number;
 
   @Column({ unique: true })
@@ -22,7 +20,13 @@ export class Vehicle {
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   createAt: Date;
 
-  @ManyToOne(() => TypeVehicle, (typeVehicle) => typeVehicle.id)
+  @ManyToOne(() => TypeVehicle, (typeVehicle) => typeVehicle.vehicles)
   @JoinColumn({ name: 'typeVehicleId' })
-  typeVehicleId: TypeVehicle;
+  typeVehicle: TypeVehicle;
+
+  @OneToMany(() => Attention, (attention) => attention.vehicle)
+  attentions: Attention[];
+
+  @OneToMany(() => Parking, (parking) => parking.vehicle)
+  parkings: Parking[];
 }

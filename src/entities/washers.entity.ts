@@ -4,7 +4,6 @@ import { Attention } from './attentions.entity';
 @Entity({ name: 'washers' })
 export class Washer {
   @PrimaryGeneratedColumn({ type: 'int', unsigned: true })
-  @OneToMany(() => Attention, (attention) => attention.washerId)
   id: number;
 
   @Column()
@@ -18,4 +17,7 @@ export class Washer {
 
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   createAt: Date;
+
+  @OneToMany(() => Attention, (attention) => attention.washer)
+  attentions: Attention[];
 }
