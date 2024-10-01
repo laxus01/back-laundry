@@ -16,7 +16,6 @@ import { CreateVehicleDto } from './dto/create-vehicle.dto';
 export class VehiclesController {
   constructor(private vehiclesService: VehiclesService) {}
 
-  @UseGuards(JwtAuthGuard)
   @Get()
   getVehicles() {
     return this.vehiclesService.getVehicles();
@@ -34,12 +33,12 @@ export class VehiclesController {
     return this.vehiclesService.createVehicle(createVehicleDto);
   }
 
-  //@UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard)
   @Put(':id')
   updateVehicle(
     @Param('id') id: number,
     @Body() updateVehicleDto: CreateVehicleDto,
-  ) {    
+  ) {   
     return this.vehiclesService.updateVehicle(id, updateVehicleDto);
   }
 

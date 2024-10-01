@@ -14,7 +14,6 @@ export class AuthService {
 
   async login(userObjectLogin: LoginAuthDto) {
     const { user, password } = userObjectLogin;
-    console.log(user, password);
     const findUser = await this.userRepository.findOne({ where: { user } });
     if (!findUser) throw new HttpException('USER_NOT_FOUND', 404);
     if (password !== findUser.password)
