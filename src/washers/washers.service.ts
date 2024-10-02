@@ -11,7 +11,9 @@ export class WashersService {
   ) {}
 
   async getWashers() {
-    return this.washerRepository.find();
+    return this.washerRepository.find({
+      where: { state: 1 },
+    });
   }
 
   async getWasherById(id: number) {
@@ -43,6 +45,7 @@ export class WashersService {
     if (!existingWasher) {
       throw new Error('Washer not found');
     }
-    return this.washerRepository.remove(existingWasher);
+    existingWasher.state = 0;
+    return this.washerRepository.save(existingWasher);
   }
 }
