@@ -1,5 +1,6 @@
-import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, JoinColumn } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, JoinColumn, OneToOne } from 'typeorm';
 import { Product } from './products.entity';
+import { Attention } from './attentions.entity';
 
 @Entity({ name: 'sales' })
 export class Sale {
@@ -10,12 +11,13 @@ export class Sale {
   quantity: number;
 
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
-  date: Date;
-
-  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   createAt: Date;
 
   @ManyToOne(() => Product, (product) => product.sales)
   @JoinColumn({ name: 'productId' })
   product: Product;
+
+  @OneToOne(() => Attention, (attention) => attention.id)
+  @JoinColumn({ name: 'attentionId' })
+  attention: Attention;
 }

@@ -1,6 +1,6 @@
 import { Controller, Get, Param, Post, Body, Put, Delete } from '@nestjs/common';
 import { AttentionsService } from './attentions.service';
-import { CreateAttentionDto } from './dto/attention.create-attention.dto';
+import { CreateAttentionDto, SaleDto, SaleServiceDto } from './dto/attention.create-attention.dto';
 
 @Controller('attentions')
 export class AttentionsController {
@@ -12,7 +12,7 @@ export class AttentionsController {
     }
 
     @Get(':id')
-    async getAttentionById(@Param('id') id: number) {
+    async getAttentionById(@Param('id') id: string) {
         return this.attentionsService.getAttentionById(id);
     }
 
@@ -21,13 +21,18 @@ export class AttentionsController {
         return this.attentionsService.createAttention(attention);
     }
 
+    @Post('sales/services')
+    async createSalesServices(@Body() salesServices: SaleServiceDto[]) {
+        return this.attentionsService.createSalesServices(salesServices);
+    }
+
     @Put(':id')
-    async updateAttention(@Param('id') id: number, @Body() attention: CreateAttentionDto) {
+    async updateAttention(@Param('id') id: string, @Body() attention: CreateAttentionDto) {
         return this.attentionsService.updateAttention(id, attention);
     }
 
     @Delete(':id')
-    async deleteAttention(@Param('id') id: number) {
+    async deleteAttention(@Param('id') id: string) {
         return this.attentionsService.deleteAttention(id);
     }
 }

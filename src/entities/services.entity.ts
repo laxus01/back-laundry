@@ -8,6 +8,9 @@ export class Service {
   @Column()
   service: string;
 
+  @Column()
+  value: number;
+
   @Column({ default: 1 })
   state: number;
 
