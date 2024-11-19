@@ -15,7 +15,7 @@ export class WashersController {
 
     @UseGuards(JwtAuthGuard)
     @Get(':id')
-    async getWasherById(@Param('id') id: number) {
+    async getWasherById(@Param('id') id: string) {
         return this.washerService.getWasherById(id);
     }
 
@@ -27,13 +27,13 @@ export class WashersController {
 
     @UseGuards(JwtAuthGuard)
     @Put(':id')
-    async updateWasher(@Param('id') id: number, @Body() washer: CreateWasherDto) {
+    async updateWasher(@Param('id') id: string, @Body() washer: CreateWasherDto) {
         return this.washerService.updateWasher(id, washer);
     }
 
     @UseGuards(JwtAuthGuard)
     @Delete(':id')
-    async deleteWasher(@Param('id') id: number) {
+    async deleteWasher(@Param('id') id: string) {
         return this.washerService.deleteWasher(id);
     }
 }

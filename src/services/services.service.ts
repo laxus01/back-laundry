@@ -14,7 +14,7 @@ export class ServicesService {
     return this.servicesRepository.find();
   }
 
-  async getServiceById(id: number) {
+  async getServiceById(id: string) {
     return this.servicesRepository.findOne({
       where: { id },
     });
@@ -25,7 +25,7 @@ export class ServicesService {
     return this.servicesRepository.save(newService);
   }
 
-  async updateService(id: number, service: CreateServiceDto) {
+  async updateService(id: string, service: CreateServiceDto) {
     const existingService = await this.servicesRepository.findOne({
       where: { id },
     });
@@ -36,7 +36,7 @@ export class ServicesService {
     return this.servicesRepository.save(updatedService);
   }
 
-  async deleteService(id: number) {
+  async deleteService(id: string) {
     const existingService = await this.servicesRepository.findOne({
       where: { id },
     });

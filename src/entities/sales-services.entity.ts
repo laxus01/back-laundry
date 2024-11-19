@@ -13,11 +13,11 @@ export class SaleService {
   @Column()
   value: number;
 
-  @ManyToOne(() => Attention, (attention) => attention.id)
-  @JoinColumn({ name: 'attentionId' })
-  atention: Attention;
-
   @ManyToOne(() => Service, (service) => service.id)
   @JoinColumn({ name: 'serviceId' })
-  services: Service;
+  serviceId: Service;
+
+  @ManyToOne(() => Attention, (attention) => attention.id)
+  @JoinColumn({ name: 'attentionId' })
+  attentionId: Attention;
 }

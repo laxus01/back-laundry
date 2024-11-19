@@ -3,8 +3,8 @@ import { Sale } from './sales.entity';
 
 @Entity({ name: 'products' })
 export class Product {
-  @PrimaryGeneratedColumn({ type: 'int', unsigned: true })
-  id: number;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
   @Column()
   product: string;
@@ -24,6 +24,6 @@ export class Product {
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   createAt: Date;
 
-  @OneToMany(() => Sale, (sale) => sale.product)
+  @OneToMany(() => Sale, (sale) => sale.productId)
   sales: Sale[];
 }

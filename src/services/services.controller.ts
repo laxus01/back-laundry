@@ -12,7 +12,7 @@ export class ServicesController {
     }
 
     @Get(':id')
-    async getServiceById(@Param('id') id: number) {
+    async getServiceById(@Param('id') id: string) {
         return this.ourServicesService.getServiceById(id);
     }
 
@@ -22,12 +22,12 @@ export class ServicesController {
     }
 
     @Put(':id')
-    async updateService(@Param('id') id: number, @Body() service: CreateServiceDto) {
+    async updateService(@Param('id') id: string, @Body() service: CreateServiceDto) {
         return this.ourServicesService.updateService(id, service);
     }
 
     @Delete(':id')
-    async deleteService(@Param('id') id: number) {
+    async deleteService(@Param('id') id: string) {
         return this.ourServicesService.deleteService(id);
     }
 }

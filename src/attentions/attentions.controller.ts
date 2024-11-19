@@ -1,6 +1,6 @@
 import { Controller, Get, Param, Post, Body, Put, Delete } from '@nestjs/common';
 import { AttentionsService } from './attentions.service';
-import { CreateAttentionDto, SaleDto, SaleServiceDto } from './dto/attention.create-attention.dto';
+import { CreateAttentionDto, SaleProductDto, SaleServiceDto } from './dto/attention.create-attention.dto';
 
 @Controller('attentions')
 export class AttentionsController {
@@ -24,6 +24,11 @@ export class AttentionsController {
     @Post('sales/services')
     async createSalesServices(@Body() salesServices: SaleServiceDto[]) {
         return this.attentionsService.createSalesServices(salesServices);
+    }
+
+    @Post('sales/products')
+    async createSalesProducts(@Body() sales: SaleProductDto[]) {
+        return this.attentionsService.createSalesProducts(sales);
     }
 
     @Put(':id')

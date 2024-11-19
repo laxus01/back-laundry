@@ -23,7 +23,7 @@ export class VehiclesController {
 
   @UseGuards(JwtAuthGuard)
   @Get(':id')
-  getVehicleById(@Param('id') id: number) {
+  getVehicleById(@Param('id') id: string) {
     return this.vehiclesService.getVehicleById(id);
   }
 
@@ -36,7 +36,7 @@ export class VehiclesController {
   @UseGuards(JwtAuthGuard)
   @Put(':id')
   updateVehicle(
-    @Param('id') id: number,
+    @Param('id') id: string,
     @Body() updateVehicleDto: CreateVehicleDto,
   ) {   
     return this.vehiclesService.updateVehicle(id, updateVehicleDto);
@@ -44,7 +44,7 @@ export class VehiclesController {
 
   @UseGuards(JwtAuthGuard)
   @Delete(':id')
-  deleteVehicle(@Param('id') id: number) {
+  deleteVehicle(@Param('id') id: string) {
     return this.vehiclesService.deleteVehicle(id);
   }
 }

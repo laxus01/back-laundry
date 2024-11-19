@@ -5,8 +5,8 @@ import { Parking } from './parkings.entity';
 
 @Entity({ name: 'vehicles' })
 export class Vehicle {
-  @PrimaryGeneratedColumn({ type: 'int', unsigned: true })
-  id: number;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
   @Column({ unique: true })
   plate: string;

@@ -16,7 +16,7 @@ export class WashersService {
     });
   }
 
-  async getWasherById(id: number) {
+  async getWasherById(id: string) {
     return this.washerRepository.findOne({
       where: { id },
     });
@@ -27,7 +27,7 @@ export class WashersService {
     return this.washerRepository.save(newWasher);
   }
 
-  async updateWasher(id: number, washer: CreateWasherDto) {
+  async updateWasher(id: string, washer: CreateWasherDto) {
     const existingWasher = await this.washerRepository.findOne({
       where: { id },
     });
@@ -38,7 +38,7 @@ export class WashersService {
     return this.washerRepository.save(updatedWasher);
   }
 
-  async deleteWasher(id: number) {
+  async deleteWasher(id: string) {
     const existingWasher = await this.washerRepository.findOne({
       where: { id },
     });

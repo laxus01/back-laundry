@@ -4,8 +4,8 @@ import { Attention } from './attentions.entity';
 
 @Entity({ name: 'sales' })
 export class Sale {
-  @PrimaryGeneratedColumn({ type: 'int', unsigned: true })
-  id: number;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
   @Column()
   quantity: number;
@@ -13,11 +13,11 @@ export class Sale {
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   createAt: Date;
 
-  @ManyToOne(() => Product, (product) => product.sales)
+  @ManyToOne(() => Product, (product) => product.id)
   @JoinColumn({ name: 'productId' })
-  product: Product;
+  productId: Product;
 
-  @OneToOne(() => Attention, (attention) => attention.id)
+  @ManyToOne(() => Attention, (attention) => attention.id)
   @JoinColumn({ name: 'attentionId' })
-  attention: Attention;
+  attentionId: Attention;
 }

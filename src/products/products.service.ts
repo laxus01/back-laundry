@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Product } from 'src/entities/products.entity';
-import { Repository } from 'typeorm';
+import { DeepPartial, Repository } from 'typeorm';
 import { CreateProductDto } from './dto/create-product.dto';
 
 @Injectable()
@@ -10,24 +10,24 @@ export class ProductsService {
     @InjectRepository(Product) private productRepository: Repository<Product>,
   ) {}
 
-  async getVehicles() {
+  async getProducts() {
     return this.productRepository.find();
   }
 
-  async getVehicleById(id: number) {
+  async getProductById(id: string) {
     return this.productRepository.findOne({
-      where: { id },
+      where: { id: String(id) },
     });
   }
 
-  async createVehicle(product: CreateProductDto) {
+  async createProduct(product: CreateProductDto) {
     const newProduct = this.productRepository.create(product);
     return this.productRepository.save(newProduct);
   }
 
-  async updateVehicle(id: number, product: CreateProductDto) {
+  async updateProduct(id: string, product: CreateProductDto) {
     const existingProduct = await this.productRepository.findOne({
-      where: { id },
+      where: { id: String(id) },
     });
     if (!existingProduct) {
       throw new Error('Product not found');
@@ -36,13 +36,13 @@ export class ProductsService {
     return this.productRepository.save(updatedProduct);
   }
 
-  async deleteVehicle(id: number) {
-    const existingVehicle = await this.productRepository.findOne({
-      where: { id },
+  async deleteProduct(id: string) {
+    const existingProduct = await this.productRepository.findOne({
+      where: { id: String(id) },
     });
-    if (!existingVehicle) {
-      throw new Error('Vehicle not found');
+    if (!existingProduct) {
+      throw new Error('Product not found');
     }
-    return this.productRepository.remove(existingVehicle);
+    return this.productRepository.remove(existingProduct);
   }
 }

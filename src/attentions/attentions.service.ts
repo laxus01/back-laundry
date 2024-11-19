@@ -1,15 +1,19 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Attention } from 'src/entities/attentions.entity';
-import { Repository } from 'typeorm';
-import { CreateAttentionDto, SaleDto, SaleServiceDto } from './dto/attention.create-attention.dto';
+import { DeepPartial, Repository } from 'typeorm';
+import { CreateAttentionDto, SaleProductDto, SaleServiceDto } from './dto/attention.create-attention.dto';
 import { SaleService } from 'src/entities/sales-services.entity';
+import { Sale } from 'src/entities/sales.entity';
+import { Product } from 'src/entities/products.entity';
 
 @Injectable()
 export class AttentionsService {
   constructor(
     @InjectRepository(Attention) private attentionRepository: Repository<Attention>,
     @InjectRepository(SaleService) private saleService: Repository<SaleService>,
+    @InjectRepository(Sale) private saleProduct: Repository<Sale>,
+    @InjectRepository(Product) private productRepository: Repository<Product>,
   ) {}
 
   async getAttentions() {
@@ -28,14 +32,9 @@ export class AttentionsService {
     return this.attentionRepository.save(newAttention);
   }
 
-  async createSales(sales: SaleDto[]) {
-    const newSales = this.attentionRepository.create(sales);
-    return this.attentionRepository.save(newSales);
-  }
-
   async createSalesServices(salesServices: SaleServiceDto[]) {  
     const attention = await this.attentionRepository.findOne({
-      where: { id: salesServices[0].attentionId },
+      where: { id: String(salesServices[0].attentionId) },
     });
     if (!attention) {
       throw new Error('Attention not found');
@@ -46,6 +45,35 @@ export class AttentionsService {
     });
     return newSalesServices;
   }
+
+  async createSalesProducts(sales: SaleProductDto[]) {
+    const attention = await this.attentionRepository.findOne({
+      where: { id: String(sales[0].attentionId) },
+    });
+    if (!attention) {
+      throw new Error('Attention not found');
+    }
+    const newSales = sales.map(async (sale: SaleProductDto) => {
+      const newSale = this.saleProduct.create(sale);
+      await this.decreaseProductExistence(sale.productId, sale.quantity);
+      return this.saleProduct.save(newSale);
+    });
+    return newSales;
+  }  
+
+  async decreaseProductExistence(id: DeepPartial<Product>, quantity: number) {
+    const product = await this.productRepository.findOne({
+      where: { id: String(id) },
+    });
+    if (!product) {
+      throw new Error('Product not found');
+    }
+    if (product.existence < quantity) {
+      throw new Error('Insufficient product existence');
+    }
+    product.existence -= quantity;
+    return this.productRepository.save(product);
+  }  
 
   async updateAttention(id: string, attention: CreateAttentionDto) {
     const existingAttention = await this.attentionRepository.findOne({

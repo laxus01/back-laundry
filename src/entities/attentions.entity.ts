@@ -1,12 +1,17 @@
-import { Entity, Column, ManyToOne, JoinColumn, PrimaryColumn } from 'typeorm';
+import { Entity, Column, ManyToOne, JoinColumn, PrimaryColumn, OneToOne, OneToMany } from 'typeorm';
 import { Vehicle } from './vehicle.entity';
 import { Washer } from './washers.entity';
+import { Sale } from './sales.entity';
+import { SaleService } from './sales-services.entity';
 
 @Entity({ name: 'attentions' })
 export class Attention {
 
   @PrimaryColumn('uuid')
   id: string;
+
+  @OneToMany(() => SaleService, (saleService) => saleService.attentionId)
+  saleServices: SaleService[];
 
   @Column()
   percentage: number;
@@ -21,4 +26,5 @@ export class Attention {
   @ManyToOne(() => Washer, (washer) => washer.attentions)
   @JoinColumn({ name: 'washerId' })
   washer: Washer;
+
 }

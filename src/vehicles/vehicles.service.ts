@@ -21,9 +21,9 @@ export class VehiclesService {
     });
   }
 
-  async getVehicleById(id: number) {
+  async getVehicleById(id: string) {
     return this.vehicleRepository.findOne({
-      where: { id },
+      where: { id: String(id) },
       relations: ['typeVehicle'],
     });
   }
@@ -42,9 +42,9 @@ export class VehiclesService {
     return this.vehicleRepository.save(newVehicle);
   }
 
-  async updateVehicle(id: number, vehicle: CreateVehicleDto) {
+  async updateVehicle(id: string, vehicle: CreateVehicleDto) {
     const existingVehicle = await this.vehicleRepository.findOne({
-      where: { id },
+      where: { id: String(id) },
       relations: ['typeVehicle'],
     });
     if (!existingVehicle) {
@@ -64,9 +64,9 @@ export class VehiclesService {
     return this.vehicleRepository.save(updatedVehicle);
   }
 
-  async deleteVehicle(id: number) {
+  async deleteVehicle(id: string) {
     const existingVehicle = await this.vehicleRepository.findOne({
-      where: { id },
+      where: { id: String(id) },
     });
     if (!existingVehicle) {
       throw new Error('Vehicle not found');

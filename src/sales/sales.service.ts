@@ -16,7 +16,7 @@ export class SalesService {
 
   async getSaleById(id: number) {
     return this.saleRepository.findOne({
-      where: { id },
+      where: { id: id.toString() },
       relations: ['typeSaleId'],
     });
   }
@@ -28,7 +28,7 @@ export class SalesService {
 
   async updateSale(id: number, sale: CreateSaleDto) {
     const existingSale = await this.saleRepository.findOne({
-      where: { id },
+      where: { id: id.toString() },
     });
     if (!existingSale) {
       throw new Error('Sale not found');
@@ -39,7 +39,7 @@ export class SalesService {
 
   async deleteSale(id: number) {
     const existingSale = await this.saleRepository.findOne({
-      where: { id },
+      where: { id: id.toString() },
     });
     if (!existingSale) {
       throw new Error('Sale not found');
