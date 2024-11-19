@@ -27,7 +27,7 @@ export class Vehicle {
   @JoinColumn({ name: 'typeVehicleId' })
   typeVehicle: TypeVehicle;
 
-  @OneToMany(() => Attention, (attention) => attention.vehicle)
+  @OneToMany(() => Attention, (attention) => attention.vehicleId)
   attentions: Attention[];
 
   @OneToMany(() => Parking, (parking) => parking.vehicle)

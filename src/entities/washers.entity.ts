@@ -18,6 +18,6 @@ export class Washer {
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   createAt: Date;
 
-  @OneToMany(() => Attention, (attention) => attention.washer)
+  @OneToMany(() => Attention, (attention) => attention.washerId)
   attentions: Attention[];
 }

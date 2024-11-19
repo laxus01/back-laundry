@@ -11,7 +11,9 @@ export class ProductsService {
   ) {}
 
   async getProducts() {
-    return this.productRepository.find();
+    return this.productRepository.find({
+      where: { state: 1 },
+    });
   }
 
   async getProductById(id: string) {
@@ -43,6 +45,7 @@ export class ProductsService {
     if (!existingProduct) {
       throw new Error('Product not found');
     }
-    return this.productRepository.remove(existingProduct);
+    existingProduct.state = 0;
+    return this.productRepository.save(existingProduct);
   }
 }

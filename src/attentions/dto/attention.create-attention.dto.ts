@@ -8,8 +8,8 @@ import { DeepPartial } from 'typeorm';
 export class CreateAttentionDto {
   id: string;
   percentage: number;
-  washer: Washer;
-  vehicle: Vehicle;
+  washerId: DeepPartial<Washer>;
+  vehicleId: DeepPartial<Vehicle>;
 }
 
 export class SaleServiceDto {

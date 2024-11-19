@@ -1,7 +1,6 @@
-import { Entity, Column, ManyToOne, JoinColumn, PrimaryColumn, OneToOne, OneToMany } from 'typeorm';
+import { Entity, Column, ManyToOne, JoinColumn, PrimaryColumn, OneToMany } from 'typeorm';
 import { Vehicle } from './vehicle.entity';
 import { Washer } from './washers.entity';
-import { Sale } from './sales.entity';
 import { SaleService } from './sales-services.entity';
 
 @Entity({ name: 'attentions' })
@@ -21,10 +20,10 @@ export class Attention {
 
   @ManyToOne(() => Vehicle, (vehicle) => vehicle.attentions)
   @JoinColumn({ name: 'vehicleId' })
-  vehicle: Vehicle;
+  vehicleId: Vehicle;
 
   @ManyToOne(() => Washer, (washer) => washer.attentions)
   @JoinColumn({ name: 'washerId' })
-  washer: Washer;
+  washerId: Washer;
 
 }

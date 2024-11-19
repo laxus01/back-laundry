@@ -6,6 +6,10 @@ import { CreateAttentionDto, SaleProductDto, SaleServiceDto } from './dto/attent
 import { SaleService } from 'src/entities/sales-services.entity';
 import { Sale } from 'src/entities/sales.entity';
 import { Product } from 'src/entities/products.entity';
+import { DataSource } from 'typeorm';
+import { exec } from 'child_process';
+import * as fs from 'fs';
+import * as path from 'path';
 
 @Injectable()
 export class AttentionsService {
@@ -14,6 +18,7 @@ export class AttentionsService {
     @InjectRepository(SaleService) private saleService: Repository<SaleService>,
     @InjectRepository(Sale) private saleProduct: Repository<Sale>,
     @InjectRepository(Product) private productRepository: Repository<Product>,
+    private readonly dataSource: DataSource,
   ) {}
 
   async getAttentions() {
