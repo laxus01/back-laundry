@@ -11,7 +11,7 @@ export class SalesService {
   ) {}
 
   async getSales() {
-    return this.saleRepository.find({ relations: ['productId'] });
+    return this.saleRepository.find({ relations: ['productId', 'washerId'] });
   }
 
   async getSaleById(id: number) {
@@ -23,27 +23,34 @@ export class SalesService {
 
   async createSale(sale: CreateSaleDto) {
     const newSale = this.saleRepository.create(sale);
-    return this.saleRepository.save(newSale);
-  }
 
-  async updateSale(id: number, sale: CreateSaleDto) {
-    const existingSale = await this.saleRepository.findOne({
-      where: { id: id.toString() },
-    });
-    if (!existingSale) {
-      throw new Error('Sale not found');
+    // Find the product and update its existence
+    const product = await this.saleRepository.manager.findOne('Product', {
+      where: { id: sale.productId },
+    }) as any;
+    if (!product) {
+      throw new Error('Product not found');
     }
-    const updatedSale = { ...existingSale, ...sale };
-    return this.saleRepository.save(updatedSale);
+    product.existence -= sale.quantity;
+    await this.saleRepository.manager.save(product);
+
+    return this.saleRepository.save(newSale);
   }
 
   async deleteSale(id: number) {
     const existingSale = await this.saleRepository.findOne({
       where: { id: id.toString() },
+      relations: ['productId'],
     });
     if (!existingSale) {
       throw new Error('Sale not found');
     }
+
+    // Update the product existence
+    const product = existingSale.productId;
+    product.existence += existingSale.quantity;
+    await this.saleRepository.manager.save(product);
+
     return this.saleRepository.remove(existingSale);
   }
 }

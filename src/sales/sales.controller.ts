@@ -26,12 +26,6 @@ export class SalesController {
     }
 
     @UseGuards(JwtAuthGuard)
-    @Put(':id')
-    async updateSale(@Param('id') id: number, @Body() sale: CreateSaleDto) {
-        return this.salesService.updateSale(id, sale);
-    }
-
-    @UseGuards(JwtAuthGuard)
     @Delete(':id')
     async deleteSale(@Param('id') id: number) {
         return this.salesService.deleteSale(id);

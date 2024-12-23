@@ -1,6 +1,7 @@
 import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, JoinColumn, OneToOne } from 'typeorm';
 import { Product } from './products.entity';
 import { Attention } from './attentions.entity';
+import { Washer } from './washers.entity';
 
 @Entity({ name: 'sales' })
 export class Sale {
@@ -20,4 +21,8 @@ export class Sale {
   @ManyToOne(() => Attention, (attention) => attention.id)
   @JoinColumn({ name: 'attentionId' })
   attentionId: Attention;
+
+  @ManyToOne(() => Washer, (washer) => washer.id, { nullable: true })
+  @JoinColumn({ name: 'washerId' })
+  washerId: Washer;
 }
