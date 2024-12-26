@@ -20,7 +20,7 @@ import { ExpensesModule } from './expenses/expenses.module';
       type: 'mysql',
       host: 'autorack.proxy.rlwy.net',
       username: 'root',
-      password: 'iEOiyBkhssLOTkICmYERZJASWWzYMMOh',
+      password: 'sOhVFUUCNWKMTniyKSobAbQOrzUpBVks',
       database: 'railway',
       port: 40168,
       entities: [__dirname + '/**/*.entity{.ts,.js}'],
