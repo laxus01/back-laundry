@@ -18,11 +18,11 @@ import { ExpensesModule } from './expenses/expenses.module';
   imports: [
     TypeOrmModule.forRoot({
       type: 'mysql',
-      host: 'localhost',
+      host: 'autorack.proxy.rlwy.net',
       username: 'root',
       password: 'iEOiyBkhssLOTkICmYERZJASWWzYMMOh',
       database: 'railway',
-      port: 3306,
+      port: 40168,
       entities: [__dirname + '/**/*.entity{.ts,.js}'],
       synchronize: true,
     }),
