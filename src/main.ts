@@ -7,6 +7,8 @@ async function bootstrap() {
   const monthlyTaskService = app.get(ParkingsService);
   monthlyTaskService.setupMonthlyCron();
   app.enableCors(); 
-  await app.listen(4000);
+  const port = parseInt(process.env.PORT as string, 10) || 3000;
+  await app.listen(port);
+  console.log(`Backend running on port ${port}`);
 }
 bootstrap();

@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -13,18 +14,24 @@ import { AttentionsModule } from './attentions/attentions.module';
 import { ParkingsModule } from './parkings/parkings.module';
 import { ShoppingModule } from './shopping/shopping.module';
 import { ExpensesModule } from './expenses/expenses.module';
+import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+    }),
     TypeOrmModule.forRoot({
       type: 'mysql',
-      host: 'autorack.proxy.rlwy.net',
-      username: 'root',
-      password: 'sOhVFUUCNWKMTniyKSobAbQOrzUpBVks',
-      database: 'railway',
-      port: 40168,
-      entities: [__dirname + '/**/*.entity{.ts,.js}'],
+      host: process.env.DATABASE_HOST,
+      port: parseInt(process.env.DATABASE_PORT) || 3306,
+      username: process.env.DATABASE_USER,
+      password: process.env.DATABASE_PASSWORD,
+      database: process.env.DATABASE_NAME,
+      autoLoadEntities: true,
       synchronize: true,
+      retryAttempts: 10,
+      retryDelay: 3000,
     }),
     AuthModule,
     VehiclesModule,
@@ -37,6 +44,7 @@ import { ExpensesModule } from './expenses/expenses.module';
     ParkingsModule,
     ShoppingModule,
     ExpensesModule,
+    UsersModule,
   ],
   controllers: [AppController],
   providers: [AppService],
