@@ -1,5 +1,5 @@
 import { TypeParking } from 'src/entities/type-parking.entity';
-import { Vehicle } from 'src/entities/vehicle.entity';
+import { Vehicle } from 'src/vehicles/entities/vehicle.entity';
 
 export class CreateParkingDto {
   dateInitial: Date;

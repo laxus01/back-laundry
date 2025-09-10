@@ -1,6 +1,6 @@
 import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, JoinColumn } from 'typeorm';
-import { Attention } from './attentions.entity';
-import { Service } from './services.entity';
+import { Attention } from '../../attentions/entities/attentions.entity';
+import { Service } from '../../services/entities/services.entity';
 
 @Entity({ name: 'sales-services' })
 export class SaleService {

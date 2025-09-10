@@ -1,11 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Attention } from 'src/entities/attentions.entity';
+import { Attention } from 'src/attentions/entities/attentions.entity';
 import { DeepPartial, Repository } from 'typeorm';
 import { CreateAttentionDto, SaleProductDto, SaleServiceDto } from './dto/attention.create-attention.dto';
-import { SaleService } from 'src/entities/sales-services.entity';
-import { Sale } from 'src/entities/sales.entity';
-import { Product } from 'src/entities/products.entity';
+import { SaleService } from 'src/sales/entities/sales-services.entity';
+import { Sale } from 'src/sales/entities/sales.entity';
+import { Product } from 'src/products/entities/products.entity';
 import { DataSource } from 'typeorm';
 import { exec } from 'child_process';
 import * as fs from 'fs';

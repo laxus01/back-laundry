@@ -1,7 +1,7 @@
 import { Entity, Column, ManyToOne, JoinColumn, PrimaryColumn, OneToMany } from 'typeorm';
-import { Vehicle } from './vehicle.entity';
-import { Washer } from './washers.entity';
-import { SaleService } from './sales-services.entity';
+import { Vehicle } from '../../vehicles/entities/vehicle.entity';
+import { Washer } from '../../washers/entities/washers.entity';
+import { SaleService } from '../../sales/entities/sales-services.entity';
 
 @Entity({ name: 'attentions' })
 export class Attention {

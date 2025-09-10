@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Product } from 'src/entities/products.entity';
+import { Product } from 'src/products/entities/products.entity';
 import { DeepPartial, Repository } from 'typeorm';
 import { CreateProductDto } from './dto/create-product.dto';
 

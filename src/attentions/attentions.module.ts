@@ -2,12 +2,12 @@ import { Module } from '@nestjs/common';
 import { AttentionsController } from './attentions.controller';
 import { AttentionsService } from './attentions.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Vehicle } from 'src/entities/vehicle.entity';
+import { Vehicle } from 'src/vehicles/entities/vehicle.entity';
 import { Washer } from 'src/entities/washers.entity';
-import { Attention } from 'src/entities/attentions.entity';
-import { SaleService } from 'src/entities/sales-services.entity';
-import { Sale } from 'src/entities/sales.entity';
-import { Product } from 'src/entities/products.entity';
+import { Attention } from 'src/attentions/entities/attentions.entity';
+import { SaleService } from 'src/sales/entities/sales-services.entity';
+import { Sale } from 'src/sales/entities/sales.entity';
+import { Product } from 'src/products/entities/products.entity';
 
 @Module({
   imports: [

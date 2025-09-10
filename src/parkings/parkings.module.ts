@@ -2,8 +2,8 @@ import { Module } from '@nestjs/common';
 import { ParkingsService } from './parkings.service';
 import { ParkingsController } from './parkings.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Parking } from 'src/entities/parkings.entity';
-import { Vehicle } from 'src/entities/vehicle.entity';
+import { Parking } from 'src/parkings/entities/parkings.entity';
+import { Vehicle } from 'src/vehicles/entities/vehicle.entity';
 import { TypeParking } from 'src/entities/type-parking.entity';
 
 @Module({

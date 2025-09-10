@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { VehiclesController } from './vehicles.controller';
 import { VehiclesService } from './vehicles.service';
-import { Vehicle } from 'src/entities/vehicle.entity';
+import { Vehicle } from 'src/vehicles/entities/vehicle.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { TypeVehicle } from 'src/entities/type-vehicle.entity';
 

@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Parking } from 'src/entities/parkings.entity';
+import { Parking } from 'src/parkings/entities/parkings.entity';
 import { Repository } from 'typeorm';
 import { CreateParkingDto } from './dto/parking.dto';
 import { Logger } from '@nestjs/common';

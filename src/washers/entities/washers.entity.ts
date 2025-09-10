@@ -1,5 +1,5 @@
 import { Entity, Column, PrimaryGeneratedColumn, OneToMany, JoinColumn } from 'typeorm';
-import { Attention } from './attentions.entity';
+import { Attention } from '../../attentions/entities/attentions.entity';
 
 @Entity({ name: 'washers' })
 export class Washer {

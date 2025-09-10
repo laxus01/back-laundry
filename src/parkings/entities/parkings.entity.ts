@@ -1,6 +1,6 @@
 import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, JoinColumn } from 'typeorm';
-import { Vehicle } from './vehicle.entity';
-import { TypeParking } from './type-parking.entity';
+import { Vehicle } from '../../vehicles/entities/vehicle.entity';
+import { TypeParking } from '../entities/type-parking.entity';
 
 @Entity({ name: 'parkings' })
 export class Parking {
