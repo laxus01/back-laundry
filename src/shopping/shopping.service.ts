@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Shopping } from 'src/entities/shopping.entity';
+import { Shopping } from 'src/shopping/entities/shopping.entity';
 import { Repository } from 'typeorm';
 import { CreateShoppingDto } from './dto/create-shopping.dto';
 

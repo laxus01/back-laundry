@@ -1,4 +1,4 @@
-import { TypeVehicle } from "src/entities/type-vehicle.entity";
+import { TypeVehicle } from "src/vehicles/entities/type-vehicle.entity";
 
 export class CreateVehicleDto {
   id?: string;

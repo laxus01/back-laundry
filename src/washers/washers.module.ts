@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { WashersController } from './washers.controller';
 import { WashersService } from './washers.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Washer } from 'src/entities/washers.entity';
+import { Washer } from 'src/washers/entities/washers.entity';
 
 @Module({
   imports: [

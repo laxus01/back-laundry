@@ -3,7 +3,7 @@ import { VehiclesController } from './vehicles.controller';
 import { VehiclesService } from './vehicles.service';
 import { Vehicle } from 'src/vehicles/entities/vehicle.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { TypeVehicle } from 'src/entities/type-vehicle.entity';
+import { TypeVehicle } from 'src/vehicles/entities/type-vehicle.entity';
 
 @Module({
   imports: [

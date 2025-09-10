@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Vehicle } from 'src/vehicles/entities/vehicle.entity';
 import { Repository } from 'typeorm';
 import { CreateVehicleDto } from './dto/create-vehicle.dto';
-import { TypeVehicle } from 'src/entities/type-vehicle.entity';
+import { TypeVehicle } from 'src/vehicles/entities/type-vehicle.entity';
 
 @Injectable()
 export class VehiclesService {
@@ -29,17 +29,37 @@ export class VehiclesService {
   }
 
   async createVehicle(vehicle: CreateVehicleDto) {
+    // Check if plate already exists
+    const existingVehicle = await this.vehicleRepository.findOne({
+      where: { plate: vehicle.plate },
+    });
+    
+    if (existingVehicle) {
+      return {
+        success: false,
+        message: 'La placa ya existe en la base de datos',
+        data: null,
+        statusCode: 409
+      };
+    }
+
     const typeVehicle = await this.typeVehicleRepository.findOne({
       where: { id: Number(vehicle.typeVehicleId) },
     });
-    if (!typeVehicle) {
-      throw new Error('typeVehicle not found');
-    }
+    
     const newVehicle = this.vehicleRepository.create({
       ...vehicle,
       typeVehicle,
     });
-    return this.vehicleRepository.save(newVehicle);
+    
+    const savedVehicle = await this.vehicleRepository.save(newVehicle);
+    
+    return {
+      success: true,
+      message: 'Vehículo creado exitosamente',
+      data: savedVehicle,
+      statusCode: 201
+    };
   }
 
   async updateVehicle(id: string, vehicle: CreateVehicleDto) {

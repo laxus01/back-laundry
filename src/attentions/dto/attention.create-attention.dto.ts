@@ -2,7 +2,7 @@ import { Attention } from 'src/attentions/entities/attentions.entity';
 import { Product } from 'src/products/entities/products.entity';
 import { Service } from 'src/services/entities/services.entity';
 import { Vehicle } from 'src/vehicles/entities/vehicle.entity';
-import { Washer } from 'src/entities/washers.entity';
+import { Washer } from 'src/washers/entities/washers.entity';
 import { DeepPartial } from 'typeorm';
 
 export class CreateAttentionDto {
