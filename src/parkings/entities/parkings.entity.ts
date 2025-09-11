@@ -1,6 +1,7 @@
-import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, JoinColumn } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, JoinColumn, OneToMany } from 'typeorm';
 import { Vehicle } from '../../vehicles/entities/vehicle.entity';
 import { TypeParking } from '../entities/type-parking.entity';
+import { ParkingPayment } from './parking-payments.entity';
 
 @Entity({ name: 'parkings' })
 export class Parking {
@@ -32,4 +33,7 @@ export class Parking {
   @ManyToOne(() => Vehicle, (vehicle) => vehicle.parkings)
   @JoinColumn({ name: 'vehicleId' })
   vehicle: Vehicle;
+
+  @OneToMany(() => ParkingPayment, (parkingPayment) => parkingPayment.parking)
+  parkingPayments: ParkingPayment[];
 }
