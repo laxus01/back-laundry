@@ -8,10 +8,10 @@ export class Parking {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column()
+  @Column({ type: 'date' })
   dateInitial: Date;
 
-  @Column()
+  @Column({ type: 'date' })
   dateFinal: Date;
 
   @Column()
