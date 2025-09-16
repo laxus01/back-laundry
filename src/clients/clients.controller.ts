@@ -12,7 +12,7 @@ export class ClientsController {
     }
 
     @Get(':id')
-    async getClientById(@Param('id') id: number) {
+    async getClientById(@Param('id') id: string) {
         return this.clientsService.getClientById(id);
     }
 
@@ -22,12 +22,12 @@ export class ClientsController {
     }
 
     @Put(':id')
-    async updateClient(@Param('id') id: number, @Body() client: CreateClientDto) {
+    async updateClient(@Param('id') id: string, @Body() client: CreateClientDto) {
         return this.clientsService.updateClient(id, client);
     }
 
     @Delete(':id')
-    async deleteClient(@Param('id') id: number) {
+    async deleteClient(@Param('id') id: string) {
         return this.clientsService.deleteClient(id);
     }
 }

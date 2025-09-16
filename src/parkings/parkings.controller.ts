@@ -15,7 +15,7 @@ export class ParkingsController {
 
     @UseGuards(JwtAuthGuard)
     @Get(':id')
-    async getParkingById(@Param('id') id: number) {
+    async getParkingById(@Param('id') id: string) {
         return this.parkingsService.getParkingById(id);
     }
 
@@ -27,13 +27,13 @@ export class ParkingsController {
 
     @UseGuards(JwtAuthGuard)
     @Put(':id')
-    async updateParking(@Param('id') id: number, @Body() parking: CreateParkingDto) {
+    async updateParking(@Param('id') id: string, @Body() parking: CreateParkingDto) {
         return this.parkingsService.updateParking(id, parking);
     }
 
     @UseGuards(JwtAuthGuard)
     @Delete(':id')
-    async deleteParking(@Param('id') id: number) {
+    async deleteParking(@Param('id') id: string) {
         return this.parkingsService.deleteParking(id);
     }
 

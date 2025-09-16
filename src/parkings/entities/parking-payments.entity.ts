@@ -3,8 +3,8 @@ import { Parking } from './parkings.entity';
 
 @Entity({ name: 'parking_payments' })
 export class ParkingPayment {
-  @PrimaryGeneratedColumn({ type: 'int', unsigned: true })
-  id: number;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
   @Column({ type: 'date' })
   date: Date;
@@ -17,6 +17,9 @@ export class ParkingPayment {
 
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   createAt: Date;
+
+  @Column('uuid')
+  parkingId: string;
 
   @ManyToOne(() => Parking, (parking) => parking.parkingPayments)
   @JoinColumn({ name: 'parkingId' })

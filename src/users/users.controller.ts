@@ -12,7 +12,7 @@ export class UsersController {
     }
 
     @Get(':id')
-    async getUserById(@Param('id') id: number) {
+    async getUserById(@Param('id') id: string) {
         return this.usersService.getUserById(id);
     }
 
@@ -22,12 +22,12 @@ export class UsersController {
     }
 
     @Put(':id')
-    async updateUser(@Param('id') id: number, @Body() user: CreateUserDto) {
+    async updateUser(@Param('id') id: string, @Body() user: CreateUserDto) {
         return this.usersService.updateUser(id, user);
     }
 
     @Delete(':id')
-    async deleteUser(@Param('id') id: number) {
+    async deleteUser(@Param('id') id: string) {
         return this.usersService.deleteUser(id);
     }
 }

@@ -13,13 +13,16 @@ export class ParkingsService {
   ) {}
 
   async getParkings() {
-    return this.parkingRepository.find({ relations: ['vehicleId'] });
+    return this.parkingRepository.find({ 
+      where: { state: 1 },
+      relations: ['vehicle', 'vehicle.typeVehicle', 'typeParking', 'parkingPayments'] 
+    });
   }
 
-  async getParkingById(id: number) {
+  async getParkingById(id: string) {
     return this.parkingRepository.findOne({
       where: { id },
-      relations: ['vehicleId'],
+      relations: ['vehicle', 'vehicle.typeVehicle', 'typeParking', 'parkingPayments'],
     });
   }
 
@@ -28,7 +31,7 @@ export class ParkingsService {
     return this.parkingRepository.save(newParking);
   }
 
-  async updateParking(id: number, parking: CreateParkingDto) {
+  async updateParking(id: string, parking: CreateParkingDto) {
     const existingParking = await this.parkingRepository.findOne({
       where: { id },
     });
@@ -39,9 +42,9 @@ export class ParkingsService {
     return this.parkingRepository.save(updatedParking);
   }
 
-  async deleteParking(id: number) {
+  async deleteParking(id: string) {
     const existingParking = await this.parkingRepository.findOne({
-      where: { id },
+      where: { id },  
     });
     if (!existingParking) {
       throw new Error('Parking not found');

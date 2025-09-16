@@ -1,10 +1,10 @@
-import { Entity, Column, PrimaryGeneratedColumn, OneToMany } from 'typeorm';
+import { Entity, Column, PrimaryColumn, OneToMany } from 'typeorm';
 import { Parking } from 'src/parkings/entities/parkings.entity';
 
 @Entity({ name: 'type-parking' })
 export class TypeParking {
-  @PrimaryGeneratedColumn({ type: 'int', unsigned: true })
-  id: number;
+  @PrimaryColumn('uuid')
+  id: string;
 
   @Column()
   type: string;

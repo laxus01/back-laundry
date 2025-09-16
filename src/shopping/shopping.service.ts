@@ -14,7 +14,7 @@ export class ShoppingService {
     return this.shoppingRepository.find({ relations: ['productId'] });
   }
 
-  async getShoppingById(id: number) {
+  async getShoppingById(id: string) {
     return this.shoppingRepository.findOne({
       where: { id },
       relations: ['typeShoppingId'],
@@ -26,7 +26,7 @@ export class ShoppingService {
     return this.shoppingRepository.save(newShopping);
   }
 
-  async updateShopping(id: number, shopping: CreateShoppingDto) {
+  async updateShopping(id: string, shopping: CreateShoppingDto) {
     const existingShopping = await this.shoppingRepository.findOne({
       where: { id },
     });
@@ -37,7 +37,7 @@ export class ShoppingService {
     return this.shoppingRepository.save(updatedShopping);
   }
 
-  async deleteShopping(id: number) {
+  async deleteShopping(id: string) {
     const existingShopping = await this.shoppingRepository.findOne({
       where: { id },
     });

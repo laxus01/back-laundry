@@ -15,7 +15,7 @@ export class ExpensesController {
 
     @UseGuards(JwtAuthGuard)
     @Get(':id')
-    async getExpenseById(@Param('id') id: number) {
+    async getExpenseById(@Param('id') id: string) {
         return this.expensesService.getExpenseById(id);
     }
 
@@ -27,13 +27,13 @@ export class ExpensesController {
 
     @UseGuards(JwtAuthGuard)
     @Put(':id')
-    async updateExpense(@Param('id') id: number, @Body() expense: CreateExpenseDto) {
+    async updateExpense(@Param('id') id: string, @Body() expense: CreateExpenseDto) {
         return this.expensesService.updateExpense(id, expense);
     }
 
     @UseGuards(JwtAuthGuard)
     @Delete(':id')
-    async deleteExpense(@Param('id') id: number) {
+    async deleteExpense(@Param('id') id: string) {
         return this.expensesService.deleteExpense(id);
     }
 }

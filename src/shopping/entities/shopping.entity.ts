@@ -1,10 +1,10 @@
-import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, JoinColumn } from 'typeorm';
+import { Entity, Column, PrimaryColumn, ManyToOne, JoinColumn } from 'typeorm';
 import { Product } from 'src/products/entities/products.entity';
 
 @Entity({ name: 'shopping' })
 export class Shopping {
-  @PrimaryGeneratedColumn({ type: 'int', unsigned: true })
-  id: number;
+  @PrimaryColumn('uuid')
+  id: string;
 
   @Column()
   quantity: number;

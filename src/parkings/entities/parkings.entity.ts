@@ -5,8 +5,8 @@ import { ParkingPayment } from './parking-payments.entity';
 
 @Entity({ name: 'parkings' })
 export class Parking {
-  @PrimaryGeneratedColumn({ type: 'int', unsigned: true })
-  id: number;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
   @Column()
   dateInitial: Date;
@@ -25,6 +25,12 @@ export class Parking {
 
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   createAt: Date;
+
+  @Column('uuid')
+  typeParkingId: string;
+
+  @Column('uuid')
+  vehicleId: string;
 
   @ManyToOne(() => TypeParking, (typeParking) => typeParking.parkings)
   @JoinColumn({ name: 'typeParkingId' })

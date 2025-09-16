@@ -14,7 +14,7 @@ export class ExpensesService {
     return this.expenseRepository.find();
   }
 
-  async getExpenseById(id: number) {
+  async getExpenseById(id: string) {
     return this.expenseRepository.findOne({
       where: { id },
     });
@@ -25,7 +25,7 @@ export class ExpensesService {
     return this.expenseRepository.save(newExpense);
   }
 
-  async updateExpense(id: number, expense: CreateExpenseDto) {
+  async updateExpense(id: string, expense: CreateExpenseDto) {
     const existingExpense = await this.expenseRepository.findOne({
       where: { id },
     });
@@ -36,7 +36,7 @@ export class ExpensesService {
     return this.expenseRepository.save(updatedExpense);
   }
 
-  async deleteExpense(id: number) {
+  async deleteExpense(id: string) {
     const existingExpense = await this.expenseRepository.findOne({
       where: { id },
     });

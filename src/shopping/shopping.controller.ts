@@ -15,7 +15,7 @@ export class ShoppingController {
 
     @UseGuards(JwtAuthGuard)
     @Get(':id')
-    async getShoppingById(@Param('id') id: number) {
+    async getShoppingById(@Param('id') id: string) {
         return this.shoppingService.getShoppingById(id);
     }
 
@@ -27,13 +27,13 @@ export class ShoppingController {
 
     @UseGuards(JwtAuthGuard)
     @Put(':id')
-    async updateShopping(@Param('id') id: number, @Body() shopping: CreateShoppingDto) {
+    async updateShopping(@Param('id') id: string, @Body() shopping: CreateShoppingDto) {
         return this.shoppingService.updateShopping(id, shopping);
     }
 
     @UseGuards(JwtAuthGuard)
     @Delete(':id')
-    async deleteShopping(@Param('id') id: number) {
+    async deleteShopping(@Param('id') id: string) {
         return this.shoppingService.deleteShopping(id);
     }
 }

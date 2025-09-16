@@ -14,7 +14,7 @@ export class UsersService {
     return this.userRepository.find();
   }
 
-  async getUserById(id: number) {
+  async getUserById(id: string) {
     return this.userRepository.findOne({
       where: { id },
     });
@@ -25,7 +25,7 @@ export class UsersService {
     return this.userRepository.save(newUser);
   }
 
-  async updateUser(id: number, user: CreateUserDto) {
+  async updateUser(id: string, user: CreateUserDto) {
     const existingUser = await this.userRepository.findOne({
       where: { id },
     });
@@ -36,7 +36,7 @@ export class UsersService {
     return this.userRepository.save(updatedUser);
   }
 
-  async deleteUser(id: number) {
+  async deleteUser(id: string) {
     const existingUser = await this.userRepository.findOne({
       where: { id },
     });

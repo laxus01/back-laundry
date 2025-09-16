@@ -14,7 +14,7 @@ export class ClientsService {
     return this.clientRepository.find();
   }
 
-  async getClientById(id: number) {
+  async getClientById(id: string) {
     return this.clientRepository.findOne({
       where: { id },
     });
@@ -25,7 +25,7 @@ export class ClientsService {
     return this.clientRepository.save(newClient);
   }
 
-  async updateClient(id: number, client: CreateClientDto) {
+  async updateClient(id: string, client: CreateClientDto) {
     const existingClient = await this.clientRepository.findOne({
       where: { id },
     });
@@ -36,7 +36,7 @@ export class ClientsService {
     return this.clientRepository.save(updatedClient);
   }
 
-  async deleteClient(id: number) {
+  async deleteClient(id: string) {
     const existingClient = await this.clientRepository.findOne({
       where: { id },
     });

@@ -44,7 +44,7 @@ export class VehiclesService {
     }
 
     const typeVehicle = await this.typeVehicleRepository.findOne({
-      where: { id: Number(vehicle.typeVehicleId) },
+      where: { id: String(vehicle.typeVehicleId) },
     });
     
     const newVehicle = this.vehicleRepository.create({
@@ -71,7 +71,7 @@ export class VehiclesService {
       throw new Error('Vehicle not found');
     }
     const typeVehicle = await this.typeVehicleRepository.findOne({
-      where: { id: Number(vehicle.typeVehicleId) },
+      where: { id: String(vehicle.typeVehicleId) },
     });
     if (!typeVehicle) {
       throw new Error('typeVehicle not found');
