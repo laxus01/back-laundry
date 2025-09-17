@@ -1,21 +1,24 @@
-import { Entity, Column, PrimaryColumn, ManyToOne, JoinColumn } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, JoinColumn } from 'typeorm';
 import { Product } from 'src/products/entities/products.entity';
 
 @Entity({ name: 'shopping' })
 export class Shopping {
-  @PrimaryColumn('uuid')
+  @PrimaryGeneratedColumn('uuid')
   id: string;
 
   @Column()
   quantity: number;
 
-  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  @Column({ type: 'date' })
   date: Date;
 
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   createAt: Date;
 
-  @ManyToOne(() => Product, (product) => product.sales)
+  @Column('uuid')
+  productId: string;
+
+  @ManyToOne(() => Product, (product) => product.shoppings)
   @JoinColumn({ name: 'productId' })
   product: Product;
 }

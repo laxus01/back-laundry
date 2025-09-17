@@ -20,9 +20,9 @@ export class Sale {
 
   @ManyToOne(() => Attention, (attention) => attention.id)
   @JoinColumn({ name: 'attentionId' })
-  attentionId: Attention;
+  attentionId: Attention | null;
 
   @ManyToOne(() => Washer, (washer) => washer.id, { nullable: true })
   @JoinColumn({ name: 'washerId' })
-  washerId: Washer;
+  washerId: Washer | null;
 }
