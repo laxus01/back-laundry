@@ -16,6 +16,9 @@ import { ShoppingModule } from './shopping/shopping.module';
 import { ExpensesModule } from './expenses/expenses.module';
 import { UsersModule } from './users/users.module';
 import { ReportsModule } from './reports/reports.module';
+import { AccountsReceivableModule } from './accountsReceivable/accounts-receivable.module';
+import { ProvidersModule } from './provider/providers.module';
+import { AccountsPayableModule } from './accountsPayable/accounts-payable.module';
 
 @Module({
   imports: [
@@ -47,6 +50,9 @@ import { ReportsModule } from './reports/reports.module';
     ExpensesModule,
     UsersModule,
     ReportsModule,
+    AccountsReceivableModule,
+    ProvidersModule,
+    AccountsPayableModule,
   ],
   controllers: [AppController],
   providers: [AppService],

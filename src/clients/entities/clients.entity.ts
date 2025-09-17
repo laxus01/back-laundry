@@ -1,8 +1,9 @@
-import { Entity, Column, PrimaryColumn } from 'typeorm';
+import { Entity, Column, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { AccountsReceivable } from 'src/accountsReceivable/entities/accounts-receivable.entity';
 
 @Entity({ name: 'clients' })
 export class Client {
-  @PrimaryColumn('uuid')
+  @PrimaryGeneratedColumn('uuid')
   id: string;
 
   @Column()
@@ -16,4 +17,7 @@ export class Client {
 
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   createAt: Date;
+
+  @OneToMany(() => AccountsReceivable, (accountsReceivable) => accountsReceivable.clientId)
+  accountsReceivable: AccountsReceivable[];
 }

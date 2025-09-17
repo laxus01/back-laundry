@@ -1,6 +1,6 @@
 import { Controller, Get, Param, Post, Body, Put, Delete, UseGuards } from '@nestjs/common';
 import { SalesService } from './sales.service';
-import { CreateSaleDto } from './sale.dto';
+import { CreateSaleDto } from './dto/sale.dto';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 
 @Controller('sales')
