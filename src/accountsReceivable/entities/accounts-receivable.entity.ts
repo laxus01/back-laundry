@@ -1,5 +1,6 @@
-import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, JoinColumn } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, JoinColumn, OneToMany } from 'typeorm';
 import { Client } from 'src/clients/entities/clients.entity';
+import { AccountsReceivablePayment } from './accounts-receivable-payments.entity';
 
 @Entity({ name: 'accounts_receivable' })
 export class AccountsReceivable {
@@ -21,6 +22,9 @@ export class AccountsReceivable {
   @ManyToOne(() => Client, (client) => client.accountsReceivable, { nullable: false })
   @JoinColumn({ name: 'clientId' })
   clientId: Client;
+
+  @OneToMany(() => AccountsReceivablePayment, (payment) => payment.accountsReceivable)
+  accountsReceivablePayments: AccountsReceivablePayment[];
 
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   createAt: Date;

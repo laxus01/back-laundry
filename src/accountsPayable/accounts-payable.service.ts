@@ -3,18 +3,40 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { AccountsPayable } from './entities/accounts-payable.entity';
 import { CreateAccountsPayableDto, UpdateAccountsPayableDto } from './dto/create-accounts-payable.dto';
+import { AccountsPayablePayment } from './entities/accounts-payable-payments.entity';
 
 @Injectable()
 export class AccountsPayableService {
   constructor(
     @InjectRepository(AccountsPayable)
     private accountsPayableRepository: Repository<AccountsPayable>,
+    @InjectRepository(AccountsPayablePayment)
+    private accountsPayablePaymentRepository: Repository<AccountsPayablePayment>,
   ) {}
 
   async getAccountsPayable() {
-    return this.accountsPayableRepository.find({
+    const accountsPayable = await this.accountsPayableRepository.find({
       relations: ['providerId'],
     });
+  
+    // Calculate balance for each accounts payable
+    const accountsPayableWithBalance = await Promise.all(
+      accountsPayable.map(async (ap) => {
+        const payments = await this.accountsPayablePaymentRepository.find({
+          where: { accountsPayableId: ap.id },
+        });
+        
+        const totalPaid = payments.reduce((sum, payment) => sum + payment.value, 0);
+        const balance = ap.value - totalPaid;
+  
+        return {
+          ...ap,
+          balance
+        };
+      })
+    );
+  
+    return accountsPayableWithBalance;
   }
 
   async getAccountsPayableById(id: string) {

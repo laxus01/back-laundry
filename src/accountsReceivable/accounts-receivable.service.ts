@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { AccountsReceivable } from './entities/accounts-receivable.entity';
+import { AccountsReceivablePayment } from './entities/accounts-receivable-payments.entity';
 import { CreateAccountsReceivableDto, UpdateAccountsReceivableDto } from './dto/create-accounts-receivable.dto';
 
 @Injectable()
@@ -9,12 +10,33 @@ export class AccountsReceivableService {
   constructor(
     @InjectRepository(AccountsReceivable)
     private accountsReceivableRepository: Repository<AccountsReceivable>,
+    @InjectRepository(AccountsReceivablePayment)
+    private accountsReceivablePaymentRepository: Repository<AccountsReceivablePayment>,
   ) {}
 
   async getAccountsReceivable() {
-    return this.accountsReceivableRepository.find({
+    const accountsReceivable = await this.accountsReceivableRepository.find({
       relations: ['clientId'],
     });
+
+    // Calculate balance for each accounts receivable
+    const accountsReceivableWithBalance = await Promise.all(
+      accountsReceivable.map(async (ar) => {
+        const payments = await this.accountsReceivablePaymentRepository.find({
+          where: { accountsReceivableId: ar.id },
+        });
+        
+        const totalPaid = payments.reduce((sum, payment) => sum + payment.value, 0);
+        const balance = ar.value - totalPaid;
+
+        return {
+          ...ar,
+          balance
+        };
+      })
+    );
+
+    return accountsReceivableWithBalance;
   }
 
   async getAccountsReceivableById(id: string) {

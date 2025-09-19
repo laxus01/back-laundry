@@ -1,5 +1,6 @@
-import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, JoinColumn } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, JoinColumn, OneToMany } from 'typeorm';
 import { Provider } from 'src/provider/entities/provider.entity';
+import { AccountsPayablePayment } from './accounts-payable-payments.entity';
 
 @Entity({ name: 'accounts_payable' })
 export class AccountsPayable {
@@ -21,6 +22,9 @@ export class AccountsPayable {
   @ManyToOne(() => Provider, (provider) => provider.accountsPayable, { nullable: false })
   @JoinColumn({ name: 'providerId' })
   providerId: Provider;
+
+  @OneToMany(() => AccountsPayablePayment, (payment) => payment.accountsPayable)
+  accountsPayablePayments: AccountsPayablePayment[];
 
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   createAt: Date;
