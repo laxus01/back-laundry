@@ -11,7 +11,10 @@ export class SalesService {
   ) {}
 
   async getSales() {
-    return this.saleRepository.find({ relations: ['productId', 'washerId'] });
+    return this.saleRepository.find({
+      order: { createAt: 'DESC' },
+      relations: ['productId', 'washerId'],
+    });
   }
 
   async getSaleById(id: number) {

@@ -17,7 +17,7 @@ export class VehiclesService {
     return this.vehicleRepository.find({
       where: { state: 1 },
       relations: ['typeVehicle'],
-      order: { id: 'DESC' },
+      order: { createAt: 'DESC' },
     });
   }
 

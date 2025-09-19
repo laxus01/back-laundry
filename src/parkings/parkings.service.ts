@@ -3,7 +3,6 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Parking } from 'src/parkings/entities/parkings.entity';
 import { Repository } from 'typeorm';
 import { CreateParkingDto } from './dto/parking.dto';
-import { Logger } from '@nestjs/common';
 import * as cron from 'cron';
 
 @Injectable()
@@ -15,6 +14,7 @@ export class ParkingsService {
   async getParkings() {
     return this.parkingRepository.find({ 
       where: { state: 1 },
+      order: { createAt: 'DESC' },
       relations: ['vehicle', 'vehicle.typeVehicle', 'typeParking', 'parkingPayments'] 
     });
   }

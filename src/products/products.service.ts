@@ -13,6 +13,7 @@ export class ProductsService {
   async getProducts() {
     return this.productRepository.find({
       where: { state: 1 },
+      order: { createAt: 'DESC' },
     });
   }
 

@@ -13,6 +13,7 @@ export class WashersService {
   async getWashers() {
     return this.washerRepository.find({
       where: { state: 1 },
+      order: { createAt: 'DESC' },
     });
   }
 

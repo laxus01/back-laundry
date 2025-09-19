@@ -61,10 +61,17 @@ export class ShoppingService {
   async deleteShopping(id: string) {
     const existingShopping = await this.shoppingRepository.findOne({
       where: { id },
+      relations: ['product'],
     });
     if (!existingShopping) {
       throw new Error('Shopping not found');
     }
+
+    // Update product existence by subtracting the shopping quantity
+    const product = existingShopping.product;
+    product.existence -= existingShopping.quantity;
+    await this.shoppingRepository.manager.save(product);
+
     return this.shoppingRepository.remove(existingShopping);
   }
 }

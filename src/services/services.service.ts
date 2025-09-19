@@ -11,7 +11,10 @@ export class ServicesService {
   ) {}
 
   async getServices() {
-    return this.servicesRepository.find();
+    return this.servicesRepository.find({
+      where: { state: 1 },
+      order: { createAt: 'DESC' },
+    });
   }
 
   async getServiceById(id: string) {
