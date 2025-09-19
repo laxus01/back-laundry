@@ -4,6 +4,7 @@ import { Parking } from 'src/parkings/entities/parkings.entity';
 import { Repository } from 'typeorm';
 import { CreateParkingDto } from './dto/parking.dto';
 import * as cron from 'cron';
+import * as dayjs from 'dayjs';
 
 @Injectable()
 export class ParkingsService {
@@ -50,6 +51,22 @@ export class ParkingsService {
       throw new Error('Parking not found');
     }
     return this.parkingRepository.remove(existingParking);
+  }
+
+  async getParkingsByDateRange(startDate: string, endDate: string) {
+    const startOfDay = dayjs(startDate).startOf('day').toDate();
+    const endOfDay = dayjs(endDate).endOf('day').toDate();
+
+    return this.parkingRepository
+      .createQueryBuilder('parking')
+      .leftJoinAndSelect('parking.vehicle', 'vehicle')
+      .leftJoinAndSelect('vehicle.typeVehicle', 'typeVehicle')
+      .leftJoinAndSelect('parking.typeParking', 'typeParking')
+      .leftJoinAndSelect('parking.parkingPayments', 'parkingPayments')
+      .where('parking.dateInitial >= :startDate', { startDate: startOfDay })
+      .andWhere('parking.dateInitial <= :endDate', { endDate: endOfDay })
+      .orderBy('parking.createAt', 'DESC')
+      .getMany();
   }
 
   async insertAllParkings() {

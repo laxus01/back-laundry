@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Post, Body, Put, Delete, UseGuards } from '@nestjs/common';
+import { Controller, Get, Param, Post, Body, Put, Delete, UseGuards, Query } from '@nestjs/common';
 import { ParkingsService } from './parkings.service';
 import { CreateParkingDto } from './dto/parking.dto';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
@@ -17,6 +17,18 @@ export class ParkingsController {
     @Get(':id')
     async getParkingById(@Param('id') id: string) {
         return this.parkingsService.getParkingById(id);
+    }
+
+    @UseGuards(JwtAuthGuard)
+    @Get('date-range/search')
+    async getParkingsByDateRange(
+        @Query('startDate') startDate: string,
+        @Query('endDate') endDate: string
+    ) {
+        if (!startDate || !endDate) {
+            throw new Error('startDate and endDate are required parameters');
+        }
+        return this.parkingsService.getParkingsByDateRange(startDate, endDate);
     }
 
     @UseGuards(JwtAuthGuard)

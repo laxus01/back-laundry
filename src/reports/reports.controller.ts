@@ -7,9 +7,10 @@ export class ReportsController {
 
   @Get('washer-activity')
   async getWasherActivityReport(
-    @Query('date') date: string,
+    @Query('startDate') startDate: string,
+    @Query('endDate') endDate: string,
     @Query('washerId') washerId: string,
   ) {
-    return await this.reportsService.getWasherActivityReport(date, washerId);
+    return await this.reportsService.getWasherActivityReport(startDate, endDate, washerId);
   }
 }

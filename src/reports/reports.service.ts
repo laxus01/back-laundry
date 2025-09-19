@@ -17,11 +17,10 @@ export class ReportsService {
     private saleServicesRepository: Repository<SaleService>,
   ) {}
 
-  async getWasherActivityReport(date: string, washerId: string) {
+  async getWasherActivityReport(startDate: string, endDate: string, washerId: string) {
     // Use dayjs for date manipulation
-    const targetDate = dayjs(date);
-    const startOfDay = targetDate.startOf('day').toDate();
-    const endOfDay = targetDate.endOf('day').toDate();
+    const startOfDay = dayjs(startDate).startOf('day').toDate();
+    const endOfDay = dayjs(endDate).endOf('day').toDate();
 
     // Query attentions table with SaleService relations
     const attentions = await this.attentionsRepository
@@ -82,7 +81,8 @@ export class ReportsService {
     });
 
     return {
-      date,
+      startDate,
+      endDate,
       washerId,
       attentions: attentionsWithProfit,
       sales,

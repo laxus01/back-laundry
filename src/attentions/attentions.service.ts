@@ -6,10 +6,12 @@ import { CreateAttentionDto, SaleProductDto, SaleServiceDto } from './dto/attent
 import { SaleService } from 'src/sales/entities/sales-services.entity';
 import { Sale } from 'src/sales/entities/sales.entity';
 import { Product } from 'src/products/entities/products.entity';
+import { Vehicle } from 'src/vehicles/entities/vehicle.entity';
 import { DataSource } from 'typeorm';
 import { exec } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
+import * as dayjs from 'dayjs';
 
 @Injectable()
 export class AttentionsService {
@@ -18,6 +20,7 @@ export class AttentionsService {
     @InjectRepository(SaleService) private saleService: Repository<SaleService>,
     @InjectRepository(Sale) private saleProduct: Repository<Sale>,
     @InjectRepository(Product) private productRepository: Repository<Product>,
+    @InjectRepository(Vehicle) private vehicleRepository: Repository<Vehicle>,
     private readonly dataSource: DataSource,
   ) {}
 
@@ -30,6 +33,89 @@ export class AttentionsService {
       where: { id },
       relations: ['vehicleId', 'washerId'],
     });
+  }
+
+  async getAttentionsByDateRange(startDate: string, endDate: string) {
+    const start = dayjs(startDate).startOf('day').toDate();
+    const end = dayjs(endDate).endOf('day').toDate();
+
+    const attentions = await this.attentionRepository
+      .createQueryBuilder('attention')
+      .leftJoinAndSelect('attention.vehicleId', 'vehicle')
+      .leftJoinAndSelect('attention.washerId', 'washer')
+      .leftJoinAndSelect('attention.saleServices', 'saleServices')
+      .leftJoinAndSelect('saleServices.serviceId', 'service')
+      .where('attention.createAt >= :startDate', { startDate: start })
+      .andWhere('attention.createAt <= :endDate', { endDate: end })
+      .getMany();
+
+    // Get related products for each attention
+    const attentionsWithProducts = await Promise.all(
+      attentions.map(async (attention) => {
+        const products = await this.saleProduct
+          .createQueryBuilder('sale')
+          .leftJoinAndSelect('sale.productId', 'product')
+          .where('sale.attentionId = :attentionId', { attentionId: attention.id })
+          .getMany();
+
+        return {
+          ...attention,
+          products: products.map(sale => ({
+            ...sale.productId,
+            quantity: sale.quantity,
+            saleId: sale.id,
+            saleCreateAt: sale.createAt
+          }))
+        };
+      })
+    );
+
+    return attentionsWithProducts;
+  }
+
+  async getAttentionsByVehicleId(vehicleId: string) {
+    // First, find the vehicle by ID
+    const vehicle = await this.vehicleRepository.findOne({
+      where: { id: vehicleId }
+    });
+
+    if (!vehicle) {
+      throw new Error('Vehicle not found');
+    }
+
+    // Get all attentions for this vehicle
+    const attentions = await this.attentionRepository
+      .createQueryBuilder('attention')
+      .leftJoinAndSelect('attention.vehicleId', 'vehicle')
+      .leftJoinAndSelect('attention.washerId', 'washer')
+      .leftJoinAndSelect('attention.saleServices', 'saleServices')
+      .leftJoinAndSelect('saleServices.serviceId', 'service')
+      .where('attention.vehicleId = :vehicleId', { vehicleId: vehicleId })
+      .orderBy('attention.createAt', 'DESC')
+      .getMany();
+
+    // Get related products for each attention
+    const attentionsWithProducts = await Promise.all(
+      attentions.map(async (attention) => {
+        const products = await this.saleProduct
+          .createQueryBuilder('sale')
+          .leftJoinAndSelect('sale.productId', 'product')
+          .where('sale.attentionId = :attentionId', { attentionId: attention.id })
+          .getMany();
+
+        return {
+          ...attention,
+          products: products.map(sale => ({
+            ...sale.productId,
+            quantity: sale.quantity,
+            saleId: sale.id,
+            saleCreateAt: sale.createAt
+          }))
+        };
+      })
+    );
+
+    return attentionsWithProducts;
   }
 
   async createAttention(attention: CreateAttentionDto) {
