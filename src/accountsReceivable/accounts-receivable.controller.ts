@@ -17,9 +17,9 @@ export class AccountsReceivableController {
     }
 
     @UseGuards(JwtAuthGuard)
-    @Get('by-client/:clientId')
-    async getAccountsReceivableByClient(@Param('clientId') clientId: string) {
-        return this.accountsReceivableService.getAccountsReceivableByClient(clientId);
+    @Get('by-vehicle/:vehicleId')
+    async getAccountsReceivableByVehicle(@Param('vehicleId') vehicleId: string) {
+        return this.accountsReceivableService.getAccountsReceivableByVehicle(vehicleId);
     }
 
     @UseGuards(JwtAuthGuard)

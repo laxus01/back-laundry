@@ -6,11 +6,11 @@ import { AccountsReceivablePaymentsService } from './accounts-receivable-payment
 import { AccountsReceivablePaymentsController } from './accounts-receivable-payments.controller';
 import { AccountsReceivable } from './entities/accounts-receivable.entity';
 import { AccountsReceivablePayment } from './entities/accounts-receivable-payments.entity';
-import { Client } from 'src/clients/entities/clients.entity';
+import { Vehicle } from 'src/vehicles/entities/vehicle.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([AccountsReceivable, AccountsReceivablePayment, Client]),
+    TypeOrmModule.forFeature([AccountsReceivable, AccountsReceivablePayment, Vehicle]),
   ],
   providers: [AccountsReceivableService, AccountsReceivablePaymentsService],
   controllers: [AccountsReceivableController, AccountsReceivablePaymentsController],

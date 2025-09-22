@@ -1,5 +1,5 @@
 import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, JoinColumn, OneToMany } from 'typeorm';
-import { Client } from 'src/clients/entities/clients.entity';
+import { Vehicle } from 'src/vehicles/entities/vehicle.entity';
 import { AccountsReceivablePayment } from './accounts-receivable-payments.entity';
 
 @Entity({ name: 'accounts_receivable' })
@@ -19,9 +19,9 @@ export class AccountsReceivable {
   @Column({ default: 1 })
   state: number;
 
-  @ManyToOne(() => Client, (client) => client.accountsReceivable, { nullable: false })
-  @JoinColumn({ name: 'clientId' })
-  clientId: Client;
+  @ManyToOne(() => Vehicle, (vehicle) => vehicle.accountsReceivable, { nullable: false })
+  @JoinColumn({ name: 'vehicleId' })
+  vehicleId: Vehicle;
 
   @OneToMany(() => AccountsReceivablePayment, (payment) => payment.accountsReceivable)
   accountsReceivablePayments: AccountsReceivablePayment[];

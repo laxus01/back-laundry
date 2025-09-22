@@ -25,7 +25,7 @@ export class AccountsReceivableService {
 
       accountsReceivable = await this.accountsReceivableRepository
         .createQueryBuilder('accountsReceivable')
-        .leftJoinAndSelect('accountsReceivable.clientId', 'client')
+        .leftJoinAndSelect('accountsReceivable.vehicleId', 'vehicle')
         .where('accountsReceivable.date >= :startDate', { startDate: startOfDay })
         .andWhere('accountsReceivable.date <= :endDate', { endDate: endOfDay })
         .orderBy('accountsReceivable.createAt', 'DESC')
@@ -33,7 +33,7 @@ export class AccountsReceivableService {
     } else {
       // Default behavior when no date range is provided
       accountsReceivable = await this.accountsReceivableRepository.find({
-        relations: ['clientId'],
+        relations: ['vehicleId'],
         order: { createAt: 'DESC' }
       });
     }
@@ -61,14 +61,14 @@ export class AccountsReceivableService {
   async getAccountsReceivableById(id: string) {
     return this.accountsReceivableRepository.findOne({
       where: { id },
-      relations: ['clientId'],
+      relations: ['vehicleId'],
     });
   }
 
   async createAccountsReceivable(accountsReceivable: CreateAccountsReceivableDto) {
     const newAccountsReceivable = this.accountsReceivableRepository.create({
       ...accountsReceivable,
-      clientId: { id: accountsReceivable.clientId } as any,
+      vehicleId: { id: accountsReceivable.vehicleId } as any,
     });
     return this.accountsReceivableRepository.save(newAccountsReceivable);
   }
@@ -91,20 +91,27 @@ export class AccountsReceivableService {
     if (!existingAccountsReceivable) {
       throw new Error('Accounts receivable not found');
     }
+
+    // First, delete all related payments to avoid foreign key constraint error
+    await this.accountsReceivablePaymentRepository.delete({
+      accountsReceivableId: id,
+    });
+
+    // Then delete the accounts receivable record
     return this.accountsReceivableRepository.remove(existingAccountsReceivable);
   }
 
-  async getAccountsReceivableByClient(clientId: string) {
+  async getAccountsReceivableByVehicle(vehicleId: string) {
     return this.accountsReceivableRepository.find({
-      where: { clientId: { id: clientId } },
-      relations: ['clientId'],
+      where: { vehicleId: { id: vehicleId } },
+      relations: ['vehicleId'],
     });
   }
 
   async getAccountsReceivableByState(state: number) {
     return this.accountsReceivableRepository.find({
       where: { state },
-      relations: ['clientId'],
+      relations: ['vehicleId'],
     });
   }
 }

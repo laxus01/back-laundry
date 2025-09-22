@@ -98,6 +98,13 @@ export class AccountsPayableService {
     if (!existingAccountsPayable) {
       throw new Error('Accounts payable not found');
     }
+
+    // First, delete all related payments to avoid foreign key constraint error
+    await this.accountsPayablePaymentRepository.delete({
+      accountsPayableId: id,
+    });
+
+    // Then delete the accounts payable record
     return this.accountsPayableRepository.remove(existingAccountsPayable);
   }
 

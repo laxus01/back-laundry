@@ -2,6 +2,7 @@ import { Entity, Column, PrimaryGeneratedColumn, JoinColumn, ManyToOne, OneToMan
 import { TypeVehicle } from './type-vehicle.entity';
 import { Attention } from '../../attentions/entities/attentions.entity';
 import { Parking } from '../../parkings/entities/parkings.entity';
+import { AccountsReceivable } from '../../accountsReceivable/entities/accounts-receivable.entity';
 
 @Entity({ name: 'vehicles' })
 export class Vehicle {
@@ -32,4 +33,7 @@ export class Vehicle {
 
   @OneToMany(() => Parking, (parking) => parking.vehicle)
   parkings: Parking[];
+
+  @OneToMany(() => AccountsReceivable, (accountsReceivable) => accountsReceivable.vehicleId)
+  accountsReceivable: AccountsReceivable[];
 }
