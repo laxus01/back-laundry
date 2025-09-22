@@ -23,6 +23,7 @@ export class SaleServiceDto {
 export class SaleProductDto {
   id?: string;
   createAt?: Date;
+  date?: Date;
   attentionId: DeepPartial<Attention>;
   productId: DeepPartial<Product>;
   quantity: number;

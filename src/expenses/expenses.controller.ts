@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Post, Body, Put, Delete, UseGuards } from '@nestjs/common';
+import { Controller, Get, Param, Post, Body, Put, Delete, UseGuards, Query } from '@nestjs/common';
 import { ExpensesService } from './expenses.service';
 import { CreateExpenseDto } from './dto/create-expense.dto';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
@@ -9,8 +9,11 @@ export class ExpensesController {
 
     @UseGuards(JwtAuthGuard)
     @Get()
-    async getExpenses() {
-        return this.expensesService.getExpenses();
+    async getExpenses(
+        @Query('startDate') startDate?: string,
+        @Query('endDate') endDate?: string
+    ) {
+        return this.expensesService.getExpenses(startDate, endDate);
     }
 
     @UseGuards(JwtAuthGuard)

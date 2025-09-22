@@ -145,7 +145,12 @@ export class AttentionsService {
       throw new Error('Attention not found');
     }
     const newSales = sales.map(async (sale: SaleProductDto) => {
-      const newSale = this.saleProduct.create(sale);
+      // Set current date if no date is provided
+      const saleData = {
+        ...sale,
+        date: sale.date || new Date()
+      };
+      const newSale = this.saleProduct.create(saleData);
       await this.decreaseProductExistence(sale.productId, sale.quantity);
       return this.saleProduct.save(newSale);
     });

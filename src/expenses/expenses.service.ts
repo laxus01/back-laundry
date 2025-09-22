@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Expense } from 'src/expenses/entities/expenses.entity';
 import { Repository } from 'typeorm';
 import { CreateExpenseDto } from './dto/create-expense.dto';
+import * as dayjs from 'dayjs';
 
 @Injectable()
 export class ExpensesService {
@@ -10,8 +11,24 @@ export class ExpensesService {
     @InjectRepository(Expense) private expenseRepository: Repository<Expense>,
   ) {}
 
-  async getExpenses() {
-    return this.expenseRepository.find();
+  async getExpenses(startDate?: string, endDate?: string) {
+    // If date range is provided, use QueryBuilder for date filtering
+    if (startDate && endDate) {
+      const startOfDay = dayjs(startDate).startOf('day').toDate();
+      const endOfDay = dayjs(endDate).endOf('day').toDate();
+
+      return this.expenseRepository
+        .createQueryBuilder('expense')
+        .where('expense.date >= :startDate', { startDate: startOfDay })
+        .andWhere('expense.date <= :endDate', { endDate: endOfDay })
+        .orderBy('expense.createAt', 'DESC')
+        .getMany();
+    }
+
+    // Default behavior when no date range is provided
+    return this.expenseRepository.find({
+      order: { createAt: 'DESC' }
+    });
   }
 
   async getExpenseById(id: string) {

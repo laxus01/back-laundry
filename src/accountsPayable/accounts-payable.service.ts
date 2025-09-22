@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { AccountsPayable } from './entities/accounts-payable.entity';
 import { CreateAccountsPayableDto, UpdateAccountsPayableDto } from './dto/create-accounts-payable.dto';
 import { AccountsPayablePayment } from './entities/accounts-payable-payments.entity';
+import * as dayjs from 'dayjs';
 
 @Injectable()
 export class AccountsPayableService {
@@ -14,10 +15,28 @@ export class AccountsPayableService {
     private accountsPayablePaymentRepository: Repository<AccountsPayablePayment>,
   ) {}
 
-  async getAccountsPayable() {
-    const accountsPayable = await this.accountsPayableRepository.find({
-      relations: ['providerId'],
-    });
+  async getAccountsPayable(startDate?: string, endDate?: string) {
+    let accountsPayable;
+
+    // If date range is provided, use QueryBuilder for date filtering
+    if (startDate && endDate) {
+      const startOfDay = dayjs(startDate).startOf('day').toDate();
+      const endOfDay = dayjs(endDate).endOf('day').toDate();
+
+      accountsPayable = await this.accountsPayableRepository
+        .createQueryBuilder('accountsPayable')
+        .leftJoinAndSelect('accountsPayable.providerId', 'provider')
+        .where('accountsPayable.date >= :startDate', { startDate: startOfDay })
+        .andWhere('accountsPayable.date <= :endDate', { endDate: endOfDay })
+        .orderBy('accountsPayable.createAt', 'DESC')
+        .getMany();
+    } else {
+      // Default behavior when no date range is provided
+      accountsPayable = await this.accountsPayableRepository.find({
+        relations: ['providerId'],
+        order: { createAt: 'DESC' }
+      });
+    }
   
     // Calculate balance for each accounts payable
     const accountsPayableWithBalance = await Promise.all(

@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Shopping } from 'src/shopping/entities/shopping.entity';
 import { Repository } from 'typeorm';
 import { CreateShoppingDto } from './dto/create-shopping.dto';
+import * as dayjs from 'dayjs';
 
 @Injectable()
 export class ShoppingService {
@@ -10,8 +11,26 @@ export class ShoppingService {
     @InjectRepository(Shopping) private shoppingRepository: Repository<Shopping>,
   ) {}
 
-  async getShoppings() {
-    return this.shoppingRepository.find({ relations: ['product'] });
+  async getShoppings(startDate?: string, endDate?: string) {
+    // If date range is provided, use QueryBuilder for date filtering
+    if (startDate && endDate) {
+      const startOfDay = dayjs(startDate).startOf('day').toDate();
+      const endOfDay = dayjs(endDate).endOf('day').toDate();
+
+      return this.shoppingRepository
+        .createQueryBuilder('shopping')
+        .leftJoinAndSelect('shopping.product', 'product')
+        .where('shopping.date >= :startDate', { startDate: startOfDay })
+        .andWhere('shopping.date <= :endDate', { endDate: endOfDay })
+        .orderBy('shopping.createAt', 'DESC')
+        .getMany();
+    }
+
+    // Default behavior when no date range is provided
+    return this.shoppingRepository.find({ 
+      relations: ['product'],
+      order: { createAt: 'DESC' }
+    });
   }
 
   async getShoppingById(id: string) {

@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Post, Body, Put, Delete, UseGuards } from '@nestjs/common';
+import { Controller, Get, Param, Post, Body, Put, Delete, UseGuards, Query } from '@nestjs/common';
 import { ShoppingService } from './shopping.service';
 import { CreateShoppingDto } from './dto/create-shopping.dto';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
@@ -9,8 +9,11 @@ export class ShoppingController {
 
     @UseGuards(JwtAuthGuard)
     @Get()
-    async getShoppings() {
-        return this.shoppingService.getShoppings();
+    async getShoppings(
+        @Query('startDate') startDate?: string,
+        @Query('endDate') endDate?: string
+    ) {
+        return this.shoppingService.getShoppings(startDate, endDate);
     }
 
     @UseGuards(JwtAuthGuard)

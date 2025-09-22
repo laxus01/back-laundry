@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Sale } from 'src/sales/entities/sales.entity';
 import { Repository } from 'typeorm';
 import { CreateSaleDto } from './dto/sale.dto';
+import * as dayjs from 'dayjs';
 
 @Injectable()
 export class SalesService {
@@ -10,11 +11,19 @@ export class SalesService {
     @InjectRepository(Sale) private saleRepository: Repository<Sale>,
   ) {}
 
-  async getSales() {
-    return this.saleRepository.find({
-      order: { createAt: 'DESC' },
-      relations: ['productId', 'washerId'],
-    });
+  async getSales(startDate: string, endDate: string) {
+    const startOfDay = dayjs(startDate).startOf('day').toDate();
+    const endOfDay = dayjs(endDate).endOf('day').toDate();
+
+    return this.saleRepository
+      .createQueryBuilder('sale')
+      .leftJoinAndSelect('sale.productId', 'product')
+      .leftJoinAndSelect('sale.washerId', 'washer')
+      .leftJoinAndSelect('sale.attentionId', 'attention')
+      .where('sale.date >= :startDate', { startDate: startOfDay })
+      .andWhere('sale.date <= :endDate', { endDate: endOfDay })
+      .orderBy('sale.createAt', 'DESC')
+      .getMany();
   }
 
   async getSaleById(id: number) {

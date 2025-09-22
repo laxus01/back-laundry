@@ -13,4 +13,12 @@ export class ReportsController {
   ) {
     return await this.reportsService.getWasherActivityReport(startDate, endDate, washerId);
   }
+
+  @Get('financial')
+  async getFinancialReport(
+    @Query('startDate') startDate: string,
+    @Query('endDate') endDate: string,
+  ) {
+    return await this.reportsService.getFinancialReport(startDate, endDate);
+  }
 }

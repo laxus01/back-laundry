@@ -12,7 +12,26 @@ export class ParkingsService {
     @InjectRepository(Parking) private parkingRepository: Repository<Parking>,
   ) {}
 
-  async getParkings() {
+  async getParkings(startDate?: string, endDate?: string) {
+    // If date range is provided, use QueryBuilder for date filtering
+    if (startDate && endDate) {
+      const startOfDay = dayjs(startDate).startOf('day').toDate();
+      const endOfDay = dayjs(endDate).endOf('day').toDate();
+
+      return this.parkingRepository
+        .createQueryBuilder('parking')
+        .leftJoinAndSelect('parking.vehicle', 'vehicle')
+        .leftJoinAndSelect('vehicle.typeVehicle', 'typeVehicle')
+        .leftJoinAndSelect('parking.typeParking', 'typeParking')
+        .leftJoinAndSelect('parking.parkingPayments', 'parkingPayments')
+        .where('parking.state = :state', { state: 1 })
+        .andWhere('parking.dateInitial >= :startDate', { startDate: startOfDay })
+        .andWhere('parking.dateInitial <= :endDate', { endDate: endOfDay })
+        .orderBy('parking.createAt', 'DESC')
+        .getMany();
+    }
+
+    // Default behavior when no date range is provided
     return this.parkingRepository.find({ 
       where: { state: 1 },
       order: { createAt: 'DESC' },

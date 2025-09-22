@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Post, Body, Put, Delete, UseGuards } from '@nestjs/common';
+import { Controller, Get, Param, Post, Body, Put, Delete, UseGuards, Query, BadRequestException } from '@nestjs/common';
 import { SalesService } from './sales.service';
 import { CreateSaleDto } from './dto/sale.dto';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
@@ -9,8 +9,11 @@ export class SalesController {
 
     @UseGuards(JwtAuthGuard)
     @Get()
-    async getSales() {
-        return this.salesService.getSales();
+    async getSales(@Query('startDate') startDate: string, @Query('endDate') endDate: string) {
+        if (!startDate || !endDate) {
+            throw new BadRequestException('startDate and endDate query parameters are required');
+        }
+        return this.salesService.getSales(startDate, endDate);
     }
 
     @UseGuards(JwtAuthGuard)

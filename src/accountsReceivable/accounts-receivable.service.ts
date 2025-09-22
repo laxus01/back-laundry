@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { AccountsReceivable } from './entities/accounts-receivable.entity';
 import { AccountsReceivablePayment } from './entities/accounts-receivable-payments.entity';
 import { CreateAccountsReceivableDto, UpdateAccountsReceivableDto } from './dto/create-accounts-receivable.dto';
+import * as dayjs from 'dayjs';
 
 @Injectable()
 export class AccountsReceivableService {
@@ -14,10 +15,28 @@ export class AccountsReceivableService {
     private accountsReceivablePaymentRepository: Repository<AccountsReceivablePayment>,
   ) {}
 
-  async getAccountsReceivable() {
-    const accountsReceivable = await this.accountsReceivableRepository.find({
-      relations: ['clientId'],
-    });
+  async getAccountsReceivable(startDate?: string, endDate?: string) {
+    let accountsReceivable;
+
+    // If date range is provided, use QueryBuilder for date filtering
+    if (startDate && endDate) {
+      const startOfDay = dayjs(startDate).startOf('day').toDate();
+      const endOfDay = dayjs(endDate).endOf('day').toDate();
+
+      accountsReceivable = await this.accountsReceivableRepository
+        .createQueryBuilder('accountsReceivable')
+        .leftJoinAndSelect('accountsReceivable.clientId', 'client')
+        .where('accountsReceivable.date >= :startDate', { startDate: startOfDay })
+        .andWhere('accountsReceivable.date <= :endDate', { endDate: endOfDay })
+        .orderBy('accountsReceivable.createAt', 'DESC')
+        .getMany();
+    } else {
+      // Default behavior when no date range is provided
+      accountsReceivable = await this.accountsReceivableRepository.find({
+        relations: ['clientId'],
+        order: { createAt: 'DESC' }
+      });
+    }
 
     // Calculate balance for each accounts receivable
     const accountsReceivableWithBalance = await Promise.all(

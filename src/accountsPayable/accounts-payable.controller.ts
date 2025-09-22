@@ -9,8 +9,11 @@ export class AccountsPayableController {
 
     @UseGuards(JwtAuthGuard)
     @Get()
-    async getAccountsPayable() {
-        return this.accountsPayableService.getAccountsPayable();
+    async getAccountsPayable(
+        @Query('startDate') startDate?: string,
+        @Query('endDate') endDate?: string
+    ) {
+        return this.accountsPayableService.getAccountsPayable(startDate, endDate);
     }
 
     @UseGuards(JwtAuthGuard)

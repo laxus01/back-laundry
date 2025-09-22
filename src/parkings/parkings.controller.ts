@@ -9,8 +9,11 @@ export class ParkingsController {
 
     @UseGuards(JwtAuthGuard)
     @Get()
-    async getParkings() {
-        return this.parkingsService.getParkings();
+    async getParkings(
+        @Query('startDate') startDate?: string,
+        @Query('endDate') endDate?: string
+    ) {
+        return this.parkingsService.getParkings(startDate, endDate);
     }
 
     @UseGuards(JwtAuthGuard)

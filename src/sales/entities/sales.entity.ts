@@ -11,6 +11,9 @@ export class Sale {
   @Column()
   quantity: number;
 
+  @Column({ type: 'date' })
+  date: Date;
+
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   createAt: Date;
 

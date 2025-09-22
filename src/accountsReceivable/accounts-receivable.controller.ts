@@ -9,8 +9,11 @@ export class AccountsReceivableController {
 
     @UseGuards(JwtAuthGuard)
     @Get()
-    async getAccountsReceivable() {
-        return this.accountsReceivableService.getAccountsReceivable();
+    async getAccountsReceivable(
+        @Query('startDate') startDate?: string,
+        @Query('endDate') endDate?: string
+    ) {
+        return this.accountsReceivableService.getAccountsReceivable(startDate, endDate);
     }
 
     @UseGuards(JwtAuthGuard)
