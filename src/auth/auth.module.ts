@@ -14,7 +14,11 @@ import { JwtStrategy } from './jwt.stategy';
     TypeOrmModule.forFeature([User, TypeParking, TypeVehicle]),
     JwtModule.register({
       secret: jwtConstants.secret,
-      signOptions: { expiresIn: '20h' },
+      signOptions: { 
+        expiresIn: process.env.JWT_EXPIRES_IN || '1h',
+        issuer: 'laundry-app',
+        audience: 'laundry-users'
+      },
     }),
   ],
   controllers: [AuthController],
