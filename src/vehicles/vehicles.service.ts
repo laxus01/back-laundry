@@ -1,97 +1,113 @@
-import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
+import { Injectable, Logger, Inject, NotFoundException } from '@nestjs/common';
+import { DataSource } from 'typeorm';
 import { Vehicle } from 'src/vehicles/entities/vehicle.entity';
-import { Repository } from 'typeorm';
-import { CreateVehicleDto } from './dto/create-vehicle.dto';
-import { TypeVehicle } from 'src/vehicles/entities/type-vehicle.entity';
+import { CreateVehicleDto, UpdateVehicleDto } from 'src/vehicles/dto/create-vehicle.dto';
+import { IVehiclesRepository, VEHICLES_REPOSITORY_TOKEN } from 'src/vehicles/interfaces/vehicles-manager.interface';
 
 @Injectable()
 export class VehiclesService {
+  private readonly logger = new Logger(VehiclesService.name);
+
   constructor(
-    @InjectRepository(Vehicle) private vehicleRepository: Repository<Vehicle>,
-    @InjectRepository(TypeVehicle)
-    private typeVehicleRepository: Repository<TypeVehicle>,
+    @Inject(VEHICLES_REPOSITORY_TOKEN)
+    private readonly vehiclesRepository: IVehiclesRepository,
+    private readonly dataSource: DataSource,
   ) {}
 
-  async getVehicles() {
-    return this.vehicleRepository.find({
-      where: { state: 1 },
-      relations: ['typeVehicle'],
-      order: { createAt: 'DESC' },
+  async getVehicles(): Promise<Vehicle[]> {
+    this.logger.log('Fetching all active vehicles');
+
+    try {
+      return await this.vehiclesRepository.findAll();
+    } catch (error) {
+      this.logger.error('Error fetching vehicles', error.stack);
+      throw error;
+    }
+  }
+
+  async getVehicleById(id: string): Promise<Vehicle | null> {
+    this.logger.log(`Fetching vehicle with ID: ${id}`);
+
+    try {
+      const vehicle = await this.vehiclesRepository.findById(id);
+      if (!vehicle) {
+        throw new NotFoundException(`Vehicle with ID ${id} not found`);
+      }
+      return vehicle;
+    } catch (error) {
+      this.logger.error(`Error fetching vehicle with ID: ${id}`, error.stack);
+      throw error;
+    }
+  }
+
+  async findByPlate(plate: string): Promise<Vehicle | null> {
+    this.logger.log(`Fetching vehicle with plate: ${plate}`);
+
+    try {
+      return await this.vehiclesRepository.findByPlate(plate);
+    } catch (error) {
+      this.logger.error(`Error fetching vehicle with plate: ${plate}`, error.stack);
+      throw error;
+    }
+  }
+
+  async createVehicle(vehicleData: CreateVehicleDto): Promise<Vehicle> {
+    this.logger.log(`Creating new vehicle with plate: ${vehicleData.plate}`);
+    return this.dataSource.transaction(async (manager) => {
+      try {
+        // Check if plate already exists
+        const existingVehicle = await this.vehiclesRepository.findByPlate(vehicleData.plate);
+        if (existingVehicle) {
+          throw new Error('La placa ya existe en la base de datos');
+        }        
+        const vehicle = await this.vehiclesRepository.create(vehicleData);
+        this.logger.log(`Vehicle created successfully with ID: ${vehicle.id}`);
+        return vehicle;
+      } catch (error) {
+        this.logger.error('Error creating vehicle', error.stack);
+        throw error;
+      }
     });
   }
 
-  async getVehicleById(id: string) {
-    return this.vehicleRepository.findOne({
-      where: { id: String(id) },
-      relations: ['typeVehicle'],
+  async updateVehicle(id: string, vehicleData: UpdateVehicleDto): Promise<Vehicle> {
+    this.logger.log(`Updating vehicle with ID: ${id}`);
+    return this.dataSource.transaction(async (manager) => {
+      try {
+        // Check if vehicle exists
+        await this.getVehicleById(id);
+        const updatedVehicle = await this.vehiclesRepository.update(id, vehicleData);
+        this.logger.log(`Vehicle updated successfully: ${id}`);
+        return updatedVehicle;
+      } catch (error) {
+        this.logger.error(`Error updating vehicle with ID: ${id}`, error.stack);
+        throw error;
+      }
     });
   }
 
-  async createVehicle(vehicle: CreateVehicleDto) {
-    // Check if plate already exists
-    const existingVehicle = await this.vehicleRepository.findOne({
-      where: { plate: vehicle.plate },
-    });
-    
-    if (existingVehicle) {
-      return {
-        success: false,
-        message: 'La placa ya existe en la base de datos',
-        data: null,
-        statusCode: 409
-      };
+  async deleteVehicle(id: string): Promise<void> {
+    this.logger.log(`Soft deleting vehicle with ID: ${id}`);
+    try {
+      await this.vehiclesRepository.softDelete(id);
+      this.logger.log(`Vehicle soft deleted successfully: ${id}`);
+    } catch (error) {
+      this.logger.error(`Error soft deleting vehicle with ID: ${id}`, error.stack);
+      throw error;
     }
-
-    const typeVehicle = await this.typeVehicleRepository.findOne({
-      where: { id: String(vehicle.typeVehicleId) },
-    });
-    
-    const newVehicle = this.vehicleRepository.create({
-      ...vehicle,
-      typeVehicle,
-    });
-    
-    const savedVehicle = await this.vehicleRepository.save(newVehicle);
-    
-    return {
-      success: true,
-      message: 'Vehículo creado exitosamente',
-      data: savedVehicle,
-      statusCode: 201
-    };
   }
 
-  async updateVehicle(id: string, vehicle: CreateVehicleDto) {
-    const existingVehicle = await this.vehicleRepository.findOne({
-      where: { id: String(id) },
-      relations: ['typeVehicle'],
-    });
-    if (!existingVehicle) {
-      throw new Error('Vehicle not found');
+  async hardDeleteVehicle(id: string): Promise<void> {
+    this.logger.log(`Hard deleting vehicle with ID: ${id}`);
+    try {
+      const result = await this.vehiclesRepository.delete(id);
+      if (result.affected === 0) {
+        throw new NotFoundException(`Vehicle with ID ${id} not found`);
+      }
+      this.logger.log(`Vehicle hard deleted successfully: ${id}`);
+    } catch (error) {
+      this.logger.error(`Error hard deleting vehicle with ID: ${id}`, error.stack);
+      throw error;
     }
-    const typeVehicle = await this.typeVehicleRepository.findOne({
-      where: { id: String(vehicle.typeVehicleId) },
-    });
-    if (!typeVehicle) {
-      throw new Error('typeVehicle not found');
-    }
-    const updatedVehicle = {
-      ...existingVehicle,
-      ...vehicle,
-      typeVehicle,
-    };
-    return this.vehicleRepository.save(updatedVehicle);
-  }
-
-  async deleteVehicle(id: string) {
-    const existingVehicle = await this.vehicleRepository.findOne({
-      where: { id: String(id) },
-    });
-    if (!existingVehicle) {
-      throw new Error('Vehicle not found');
-    }
-    existingVehicle.state = 0;
-    return this.vehicleRepository.save(existingVehicle);
   }
 }

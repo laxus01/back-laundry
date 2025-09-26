@@ -1,7 +1,7 @@
 import { Controller, Get, Param, Post, Body, Put, Delete, UseGuards, Query, BadRequestException } from '@nestjs/common';
 import { SalesService } from './sales.service';
-import { CreateSaleDto } from './dto/sale.dto';
-import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { CreateSaleDto, UpdateSaleDto } from './dto/sale.dto';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
 @Controller('sales')
 export class SalesController {
@@ -18,7 +18,7 @@ export class SalesController {
 
     @UseGuards(JwtAuthGuard)
     @Get(':id')
-    async getSaleById(@Param('id') id: number) {
+    async getSaleById(@Param('id') id: string) {
         return this.salesService.getSaleById(id);
     }
 
@@ -29,8 +29,14 @@ export class SalesController {
     }
 
     @UseGuards(JwtAuthGuard)
+    @Put(':id')
+    async updateSale(@Param('id') id: string, @Body() sale: UpdateSaleDto) {
+        return this.salesService.updateSale(id, sale);
+    }
+
+    @UseGuards(JwtAuthGuard)
     @Delete(':id')
-    async deleteSale(@Param('id') id: number) {
+    async deleteSale(@Param('id') id: string) {
         return this.salesService.deleteSale(id);
     }
 }

@@ -1,8 +1,15 @@
 export class CreateProductDto {
-  id?: string;
   product: string;
   valueBuys: number;
   saleValue: number;
   existence: number;
+  state?: number;
+}
+
+export class UpdateProductDto {
+  product?: string;
+  valueBuys?: number;
+  saleValue?: number;
+  existence?: number;
   state?: number;
 }

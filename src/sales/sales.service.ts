@@ -1,68 +1,88 @@
-import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Sale } from 'src/sales/entities/sales.entity';
-import { Repository } from 'typeorm';
-import { CreateSaleDto } from './dto/sale.dto';
-import * as dayjs from 'dayjs';
+import { Injectable, Logger } from '@nestjs/common';
+import { DataSource } from 'typeorm';
+import { CreateSaleDto, UpdateSaleDto } from './dto/sale.dto';
+import { Sale } from './entities/sales.entity';
+import { IInventoryManager, IDateRangeQuery } from './interfaces/inventory-manager.interface';
+import { SalesRepository } from './repositories/sales.repository';
+import { INVENTORY_MANAGER_TOKEN } from './interfaces/inventory-manager.interface';
+import { Inject } from '@nestjs/common';
 
 @Injectable()
 export class SalesService {
+  private readonly logger = new Logger(SalesService.name);
+
   constructor(
-    @InjectRepository(Sale) private saleRepository: Repository<Sale>,
+    @Inject(INVENTORY_MANAGER_TOKEN)
+    private readonly inventoryManager: IInventoryManager,
+    private readonly salesRepository: SalesRepository,
+    private readonly dataSource: DataSource,
   ) {}
 
-  async getSales(startDate: string, endDate: string) {
-    const startOfDay = dayjs(startDate).startOf('day').toDate();
-    const endOfDay = dayjs(endDate).endOf('day').toDate();
-
-    return this.saleRepository
-      .createQueryBuilder('sale')
-      .leftJoinAndSelect('sale.productId', 'product')
-      .leftJoinAndSelect('sale.washerId', 'washer')
-      .leftJoinAndSelect('sale.attentionId', 'attention')
-      .where('sale.date >= :startDate', { startDate: startOfDay })
-      .andWhere('sale.date <= :endDate', { endDate: endOfDay })
-      .orderBy('sale.createAt', 'DESC')
-      .getMany();
+  async getSales(startDate: string, endDate: string): Promise<Sale[]> {
+    this.logger.log(`Fetching sales from ${startDate} to ${endDate}`);
+    
+    const dateRange: IDateRangeQuery = { startDate, endDate };
+    return this.salesRepository.findByDateRange(dateRange);
   }
 
-  async getSaleById(id: number) {
-    return this.saleRepository.findOne({
-      where: { id: id.toString() },
-      relations: ['typeSaleId'],
+  async getSaleById(id: string): Promise<Sale | null> {
+    this.logger.log(`Fetching sale with ID: ${id}`);
+    
+    return this.salesRepository.findById(id);
+  }
+
+  async createSale(saleData: CreateSaleDto): Promise<Sale> {
+    this.logger.log(`Creating new sale for product: ${saleData.productId}`);
+
+    return this.dataSource.transaction(async (manager) => {
+      // Validate and decrease stock first
+      await this.inventoryManager.decreaseStock(
+        saleData.productId.toString(),
+        saleData.quantity
+      );
+
+      // Create the sale
+      const sale = await this.salesRepository.create(saleData);
+      
+      this.logger.log(`Sale created successfully with ID: ${sale.id}`);
+      return sale;
     });
   }
 
-  async createSale(sale: CreateSaleDto) {
-    const newSale = this.saleRepository.create(sale);
+  async deleteSale(id: string): Promise<void> {
+    this.logger.log(`Deleting sale with ID: ${id}`);
 
-    // Find the product and update its existence
-    const product = await this.saleRepository.manager.findOne('Product', {
-      where: { id: sale.productId },
-    }) as any;
-    if (!product) {
-      throw new Error('Product not found');
-    }
-    product.existence -= sale.quantity;
-    await this.saleRepository.manager.save(product);
+    return this.dataSource.transaction(async (manager) => {
+      // Get sale with product information
+      const sale = await this.salesRepository.findByIdWithProduct(id);
+      
+      // Restore inventory
+      await this.inventoryManager.increaseStock(
+        sale.productId.id,
+        sale.quantity
+      );
 
-    return this.saleRepository.save(newSale);
+      // Delete the sale
+      await this.salesRepository.delete(id);
+      
+      this.logger.log(`Sale deleted successfully: ${id}`);
+    });
   }
 
-  async deleteSale(id: number) {
-    const existingSale = await this.saleRepository.findOne({
-      where: { id: id.toString() },
-      relations: ['productId'],
+  async updateSale(id: string, saleData: UpdateSaleDto): Promise<Sale> {
+    return this.dataSource.transaction(async (manager) => {
+      const currentSale = await this.salesRepository.findByIdWithProduct(id);      
+      if (saleData.quantity !== undefined || saleData.productId !== undefined) {
+        await this.inventoryManager.increaseStock(
+          currentSale.productId.id,
+          currentSale.quantity
+        );
+        const newProductId = saleData.productId ? saleData.productId.toString() : currentSale.productId.id;
+        const newQuantity = saleData.quantity !== undefined ? saleData.quantity : currentSale.quantity;
+        await this.inventoryManager.decreaseStock(newProductId, newQuantity);
+      }
+      const updatedSale = await this.salesRepository.update(id, saleData);
+      return updatedSale;
     });
-    if (!existingSale) {
-      throw new Error('Sale not found');
-    }
-
-    // Update the product existence
-    const product = existingSale.productId;
-    product.existence += existingSale.quantity;
-    await this.saleRepository.manager.save(product);
-
-    return this.saleRepository.remove(existingSale);
   }
 }

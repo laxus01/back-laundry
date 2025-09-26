@@ -1,48 +1,159 @@
-import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { User } from 'src/users/entities/user.entity';
-import { Repository } from 'typeorm';
-import { CreateUserDto } from './dto/create-user.dto';
+import { Injectable, Logger, Inject, NotFoundException } from '@nestjs/common';
+import { DataSource } from 'typeorm';
+import { User } from './entities/user.entity';
+import { CreateUserDto, UpdateUserDto } from './dto/create-user.dto';
+import { IUsersRepository, USERS_REPOSITORY_TOKEN } from './interfaces/users-manager.interface';
+import * as bcrypt from 'bcryptjs';
 
 @Injectable()
 export class UsersService {
+  private readonly logger = new Logger(UsersService.name);
+
   constructor(
-    @InjectRepository(User) private userRepository: Repository<User>,
+    @Inject(USERS_REPOSITORY_TOKEN)
+    private readonly usersRepository: IUsersRepository,
+    private readonly dataSource: DataSource,
   ) {}
 
-  async getUsers() {
-    return this.userRepository.find();
-  }
+  async getUsers(): Promise<User[]> {
+    this.logger.log('Fetching all users');
 
-  async getUserById(id: string) {
-    return this.userRepository.findOne({
-      where: { id },
-    });
-  }
-
-  async createUser(user: CreateUserDto) {
-    const newUser = this.userRepository.create(user);
-    return this.userRepository.save(newUser);
-  }
-
-  async updateUser(id: string, user: CreateUserDto) {
-    const existingUser = await this.userRepository.findOne({
-      where: { id },
-    });
-    if (!existingUser) {
-      throw new Error('User not found');
+    try {
+      return await this.usersRepository.findAll();
+    } catch (error) {
+      this.logger.error('Error fetching users', error.stack);
+      throw error;
     }
-    const updatedUser = { ...existingUser, ...user };
-    return this.userRepository.save(updatedUser);
   }
 
-  async deleteUser(id: string) {
-    const existingUser = await this.userRepository.findOne({
-      where: { id },
-    });
-    if (!existingUser) {
-      throw new Error('User not found');
+  async getUserById(id: string): Promise<User | null> {
+    this.logger.log(`Fetching user with ID: ${id}`);
+
+    try {
+      const user = await this.usersRepository.findById(id);
+      if (!user) {
+        throw new NotFoundException(`User with ID ${id} not found`);
+      }
+      return user;
+    } catch (error) {
+      this.logger.error(`Error fetching user with ID: ${id}`, error.stack);
+      throw error;
     }
-    return this.userRepository.remove(existingUser);
+  }
+
+  async findByUsername(username: string): Promise<User | null> {
+    this.logger.log(`Fetching user with username: ${username}`);
+
+    try {
+      return await this.usersRepository.findByUsername(username);
+    } catch (error) {
+      this.logger.error(`Error fetching user with username: ${username}`, error.stack);
+      throw error;
+    }
+  }
+
+  async createUser(userData: CreateUserDto): Promise<User> {
+    this.logger.log(`Creating new user: ${userData.user}`);
+
+    return this.dataSource.transaction(async (manager) => {
+      try {
+        // Check if username already exists
+        const existingUser = await this.usersRepository.findByUsername(userData.user);
+        if (existingUser) {
+          throw new Error('El nombre de usuario ya existe en la base de datos');
+        }
+
+        // Hash the password before saving
+        const hashedPassword = await bcrypt.hash(userData.password, 12);
+
+        const user = await this.usersRepository.create({
+          ...userData,
+          password: hashedPassword,
+        });
+
+        this.logger.log(`User created successfully with ID: ${user.id}`);
+        return user;
+      } catch (error) {
+        this.logger.error('Error creating user', error.stack);
+        throw error;
+      }
+    });
+  }
+
+  async updateUser(id: string, userData: UpdateUserDto): Promise<User> {
+    this.logger.log(`Updating user with ID: ${id}`);
+
+    return this.dataSource.transaction(async (manager) => {
+      try {
+        // Check if user exists
+        await this.getUserById(id);
+
+        // Hash password if it's being updated
+        let updatedData = { ...userData };
+        if (userData.password) {
+          updatedData.password = await bcrypt.hash(userData.password, 12);
+        }
+
+        const updatedUser = await this.usersRepository.update(id, updatedData);
+        this.logger.log(`User updated successfully: ${id}`);
+        return updatedUser;
+      } catch (error) {
+        this.logger.error(`Error updating user with ID: ${id}`, error.stack);
+        throw error;
+      }
+    });
+  }
+
+  async deleteUser(id: string): Promise<void> {
+    this.logger.log(`Soft deleting user with ID: ${id}`);
+
+    try {
+      await this.usersRepository.softDelete(id);
+      this.logger.log(`User soft deleted successfully: ${id}`);
+    } catch (error) {
+      this.logger.error(`Error soft deleting user with ID: ${id}`, error.stack);
+      throw error;
+    }
+  }
+
+  async hardDeleteUser(id: string): Promise<void> {
+    this.logger.log(`Hard deleting user with ID: ${id}`);
+
+    try {
+      const result = await this.usersRepository.delete(id);
+      if (result.affected === 0) {
+        throw new NotFoundException(`User with ID ${id} not found`);
+      }
+      this.logger.log(`User hard deleted successfully: ${id}`);
+    } catch (error) {
+      this.logger.error(`Error hard deleting user with ID: ${id}`, error.stack);
+      throw error;
+    }
+  }
+
+  async validateUserCredentials(username: string, password: string): Promise<User | null> {
+    this.logger.log(`Validating credentials for user: ${username}`);
+
+    try {
+      const user = await this.usersRepository.findByUsername(username);
+
+      if (!user) {
+        this.logger.warn(`User not found: ${username}`);
+        return null;
+      }
+
+      const isPasswordValid = await bcrypt.compare(password, user.password);
+
+      if (!isPasswordValid) {
+        this.logger.warn(`Invalid password for user: ${username}`);
+        return null;
+      }
+
+      this.logger.log(`Valid credentials for user: ${username}`);
+      return user;
+    } catch (error) {
+      this.logger.error(`Error validating credentials for user: ${username}`, error.stack);
+      throw error;
+    }
   }
 }

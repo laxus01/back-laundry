@@ -1,7 +1,7 @@
 import { Controller, Get, Param, Post, Body, Put, Delete, UseGuards, Query } from '@nestjs/common';
 import { ExpensesService } from './expenses.service';
-import { CreateExpenseDto } from './dto/create-expense.dto';
-import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { CreateExpenseDto, UpdateExpenseDto } from './dto/create-expense.dto';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
 @Controller('expenses')
 export class ExpensesController {
@@ -30,7 +30,7 @@ export class ExpensesController {
 
     @UseGuards(JwtAuthGuard)
     @Put(':id')
-    async updateExpense(@Param('id') id: string, @Body() expense: CreateExpenseDto) {
+    async updateExpense(@Param('id') id: string, @Body() expense: UpdateExpenseDto) {
         return this.expensesService.updateExpense(id, expense);
     }
 

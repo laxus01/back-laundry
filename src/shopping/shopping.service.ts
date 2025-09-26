@@ -1,96 +1,105 @@
-import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Shopping } from 'src/shopping/entities/shopping.entity';
-import { Repository } from 'typeorm';
-import { CreateShoppingDto } from './dto/create-shopping.dto';
-import * as dayjs from 'dayjs';
+import { Injectable, Logger, Inject } from '@nestjs/common';
+import { DataSource } from 'typeorm';
+import { CreateShoppingDto, UpdateShoppingDto } from './dto/create-shopping.dto';
+import { Shopping } from './entities/shopping.entity';
+import { IDateRangeQuery, IShoppingRepository, SHOPPING_REPOSITORY_TOKEN } from './interfaces/shopping-manager.interface';
+import { IInventoryManager, INVENTORY_MANAGER_TOKEN } from '../sales/interfaces/inventory-manager.interface';
 
 @Injectable()
 export class ShoppingService {
+  private readonly logger = new Logger(ShoppingService.name);
+
   constructor(
-    @InjectRepository(Shopping) private shoppingRepository: Repository<Shopping>,
+    @Inject(SHOPPING_REPOSITORY_TOKEN)
+    private readonly shoppingRepository: IShoppingRepository,
+    @Inject(INVENTORY_MANAGER_TOKEN)
+    private readonly inventoryManager: IInventoryManager,
+    private readonly dataSource: DataSource,
   ) {}
 
-  async getShoppings(startDate?: string, endDate?: string) {
-    // If date range is provided, use QueryBuilder for date filtering
+  async getShoppings(startDate?: string, endDate?: string): Promise<Shopping[]> {
+    this.logger.log(`Fetching shoppings with date range: ${startDate} - ${endDate}`);
+    
+    // If date range is provided, use date filtering
     if (startDate && endDate) {
-      const startOfDay = dayjs(startDate).startOf('day').toDate();
-      const endOfDay = dayjs(endDate).endOf('day').toDate();
-
-      return this.shoppingRepository
-        .createQueryBuilder('shopping')
-        .leftJoinAndSelect('shopping.product', 'product')
-        .where('shopping.date >= :startDate', { startDate: startOfDay })
-        .andWhere('shopping.date <= :endDate', { endDate: endOfDay })
-        .orderBy('shopping.createAt', 'DESC')
-        .getMany();
+      const dateRange: IDateRangeQuery = { startDate, endDate };
+      return this.shoppingRepository.findByDateRange(dateRange);
     }
 
     // Default behavior when no date range is provided
-    return this.shoppingRepository.find({ 
-      relations: ['product'],
-      order: { createAt: 'DESC' }
+    return this.shoppingRepository.findAll();
+  }
+
+  async getShoppingById(id: string): Promise<Shopping | null> {
+    this.logger.log(`Fetching shopping with ID: ${id}`);
+    
+    return this.shoppingRepository.findById(id);
+  }
+
+  async createShopping(shoppingData: CreateShoppingDto): Promise<Shopping> {
+    this.logger.log(`Creating new shopping for product: ${shoppingData.productId}`);
+
+    return this.dataSource.transaction(async (manager) => {
+      // Create the shopping first
+      const shopping = await this.shoppingRepository.create(shoppingData);
+
+      // Then increase stock (purchases increase inventory)
+      await this.inventoryManager.increaseStock(
+        shoppingData.productId,
+        shoppingData.quantity
+      );
+      
+      this.logger.log(`Shopping created successfully with ID: ${shopping.id}`);
+      return shopping;
     });
   }
 
-  async getShoppingById(id: string) {
-    return this.shoppingRepository.findOne({
-      where: { id },
-      relations: ['product'],
+  async updateShopping(id: string, shoppingData: UpdateShoppingDto): Promise<Shopping> {
+    this.logger.log(`Updating shopping with ID: ${id}`);
+
+    return this.dataSource.transaction(async (manager) => {
+      const currentShopping = await this.shoppingRepository.findByIdWithProduct(id);
+      
+      // If quantity or product is being updated, adjust inventory
+      if (shoppingData.quantity !== undefined || shoppingData.productId !== undefined) {
+        // First, revert the previous inventory change (decrease by old quantity)
+        await this.inventoryManager.decreaseStock(
+          currentShopping.productId,
+          currentShopping.quantity
+        );
+
+        // Then apply the new inventory change (increase by new quantity)
+        const newProductId = shoppingData.productId || currentShopping.productId;
+        const newQuantity = shoppingData.quantity !== undefined ? shoppingData.quantity : currentShopping.quantity;
+        
+        await this.inventoryManager.increaseStock(newProductId, newQuantity);
+      }
+
+      // Update the shopping record
+      const updatedShopping = await this.shoppingRepository.update(id, shoppingData);
+      
+      this.logger.log(`Shopping updated successfully: ${id}`);
+      return updatedShopping;
     });
   }
 
-  async createShopping(shopping: CreateShoppingDto) {
-    const newShopping = this.shoppingRepository.create(shopping);
+  async deleteShopping(id: string): Promise<void> {
+    this.logger.log(`Deleting shopping with ID: ${id}`);
 
-    // Find the product and update its existence
-    const product = await this.shoppingRepository.manager.findOne('Product', {
-      where: { id: shopping.productId },
-    }) as any;
-    if (!product) {
-      throw new Error('Product not found');
-    }
-    product.existence += shopping.quantity;
-    await this.shoppingRepository.manager.save(product);
+    return this.dataSource.transaction(async (manager) => {
+      // Get shopping with product information
+      const shopping = await this.shoppingRepository.findByIdWithProduct(id);
+      
+      // Revert inventory (decrease stock since we're removing a purchase)
+      await this.inventoryManager.decreaseStock(
+        shopping.productId,
+        shopping.quantity
+      );
 
-    return this.shoppingRepository.save(newShopping);
-  }
-
-  async updateShopping(id: string, shopping: CreateShoppingDto) {
-    const existingShopping = await this.shoppingRepository.findOne({
-      where: { id },
-      relations: ['product'],
+      // Delete the shopping
+      await this.shoppingRepository.delete(id);
+      
+      this.logger.log(`Shopping deleted successfully: ${id}`);
     });
-    if (!existingShopping) {
-      throw new Error('Shopping not found');
-    }
-
-    // If quantity is being updated, adjust product existence
-    if (shopping.quantity !== undefined && shopping.quantity !== existingShopping.quantity) {
-      const product = existingShopping.product;
-      const quantityDifference = shopping.quantity - existingShopping.quantity;
-      product.existence += quantityDifference;
-      await this.shoppingRepository.manager.save(product);
-    }
-
-    const updatedShopping = { ...existingShopping, ...shopping };
-    return this.shoppingRepository.save(updatedShopping);
-  }
-
-  async deleteShopping(id: string) {
-    const existingShopping = await this.shoppingRepository.findOne({
-      where: { id },
-      relations: ['product'],
-    });
-    if (!existingShopping) {
-      throw new Error('Shopping not found');
-    }
-
-    // Update product existence by subtracting the shopping quantity
-    const product = existingShopping.product;
-    product.existence -= existingShopping.quantity;
-    await this.shoppingRepository.manager.save(product);
-
-    return this.shoppingRepository.remove(existingShopping);
   }
 }

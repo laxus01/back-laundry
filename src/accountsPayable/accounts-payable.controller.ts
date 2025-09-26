@@ -1,7 +1,7 @@
 import { Controller, Get, Param, Post, Body, Put, Delete, UseGuards, Query } from '@nestjs/common';
-import { AccountsPayableService } from 'src/accountsPayable/accounts-payable.service';
-import { CreateAccountsPayableDto, UpdateAccountsPayableDto } from 'src/accountsPayable/dto/create-accounts-payable.dto';
-import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { AccountsPayableService } from './accounts-payable.service';
+import { CreateAccountsPayableDto, UpdateAccountsPayableDto } from './dto/create-accounts-payable.dto';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
 @Controller('accounts-payable')
 export class AccountsPayableController {

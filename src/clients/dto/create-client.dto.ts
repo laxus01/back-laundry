@@ -3,3 +3,9 @@ export class CreateClientDto {
     phone: string;
     state?: number;
 }
+
+export class UpdateClientDto {
+    client?: string;
+    phone?: string;
+    state?: number;
+}

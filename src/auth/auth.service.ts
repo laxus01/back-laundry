@@ -1,11 +1,8 @@
-import { HttpException, Injectable, UnauthorizedException, Logger } from '@nestjs/common';
+import { Injectable, UnauthorizedException, Logger, Inject } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { InjectRepository } from '@nestjs/typeorm';
-import { LoginAuthDto } from 'src/auth/dto/login.dto';
-import { User } from 'src/users/entities/user.entity';
-import { TypeParking } from 'src/parkings/entities/type-parking.entity';
-import { TypeVehicle } from 'src/vehicles/entities/type-vehicle.entity';
-import { Repository } from 'typeorm';
+import { LoginAuthDto } from './dto/login.dto';
+import { AuthResponseDto } from './dto/auth.dto';
+import { IAuthRepository, AUTH_REPOSITORY_TOKEN } from './interfaces/auth-manager.interface';
 import * as bcrypt from 'bcryptjs';
 
 @Injectable()
@@ -13,18 +10,17 @@ export class AuthService {
   private readonly logger = new Logger(AuthService.name);
 
   constructor(
-    @InjectRepository(User) private userRepository: Repository<User>,
-    @InjectRepository(TypeParking) private typeParkingRepository: Repository<TypeParking>,
-    @InjectRepository(TypeVehicle) private typeVehicleRepository: Repository<TypeVehicle>,
-    private jwtAuthService: JwtService,
+    @Inject(AUTH_REPOSITORY_TOKEN)
+    private readonly authRepository: IAuthRepository,
+    private readonly jwtAuthService: JwtService,
   ) {}
 
-  async login(userObjectLogin: LoginAuthDto) {
+  async login(userObjectLogin: LoginAuthDto): Promise<AuthResponseDto> {
     const { user, password } = userObjectLogin;
-    
+
     try {
-      const findUser = await this.userRepository.findOne({ where: { user } });
-      
+      const findUser = await this.authRepository.findUserByUsername(user);
+
       if (!findUser) {
         this.logger.warn(`Login attempt with non-existent user: ${user}`);
         throw new UnauthorizedException('Invalid credentials');
@@ -38,15 +34,15 @@ export class AuthService {
       }
 
       this.logger.log(`Successful login for user: ${user}`);
-      
+
       // Fetch static application data
-      const typeParkings = await this.typeParkingRepository.find();
-      const typeVehicles = await this.typeVehicleRepository.find();
-      
+      const typeParkings = await this.authRepository.getTypeParkings();
+      const typeVehicles = await this.authRepository.getTypeVehicles();
+
       const payload = { id: findUser.id, name: findUser.name };
       const token = this.jwtAuthService.sign(payload);
-      
-      const data = {
+
+      const response: AuthResponseDto = {
         token,
         user: {
           id: findUser.id,
@@ -58,8 +54,8 @@ export class AuthService {
           typeVehicles,
         },
       };
-      
-      return data;
+
+      return response;
     } catch (error) {
       if (error instanceof UnauthorizedException) {
         throw error;

@@ -12,6 +12,13 @@ export class CreateAttentionDto {
   vehicleId: DeepPartial<Vehicle>;
 }
 
+export class UpdateAttentionDto {
+  id: string;
+  percentage: number;
+  washerId: DeepPartial<Washer>;
+  vehicleId: DeepPartial<Vehicle>;
+}
+
 export class SaleServiceDto {
   id?: string;
   createAt?: Date;

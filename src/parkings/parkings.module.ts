@@ -1,19 +1,30 @@
 import { Module } from '@nestjs/common';
-import { ParkingsService } from './parkings.service';
+import { TypeOrmModule } from '@nestjs/typeorm';
 import { ParkingsController } from './parkings.controller';
+import { ParkingsService } from './parkings.service';
 import { ParkingPaymentsService } from './parking-payments.service';
 import { ParkingPaymentsController } from './parking-payments.controller';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { Parking } from 'src/parkings/entities/parkings.entity';
-import { Vehicle } from 'src/vehicles/entities/vehicle.entity';
-import { TypeParking } from 'src/parkings/entities/type-parking.entity';
-import { ParkingPayment } from 'src/parkings/entities/parking-payments.entity';
+import { Parking } from './entities/parkings.entity';
+import { Vehicle } from '../vehicles/entities/vehicle.entity';
+import { TypeParking } from './entities/type-parking.entity';
+import { ParkingPayment } from './entities/parking-payments.entity';
+import { ParkingsRepository } from './repositories/parkings.repository';
+import { PARKINGS_REPOSITORY_TOKEN } from './interfaces/parkings-manager.interface';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Parking, Vehicle, TypeParking, ParkingPayment]),
   ],
-  providers: [ParkingsService, ParkingPaymentsService],
-  controllers: [ParkingsController, ParkingPaymentsController]
+  controllers: [ParkingsController, ParkingPaymentsController],
+  providers: [
+    ParkingsService,
+    ParkingPaymentsService,
+    ParkingsRepository,
+    {
+      provide: PARKINGS_REPOSITORY_TOKEN,
+      useClass: ParkingsRepository,
+    },
+  ],
+  exports: [ParkingsService, ParkingPaymentsService],
 })
 export class ParkingsModule {}

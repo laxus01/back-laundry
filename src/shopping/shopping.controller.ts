@@ -1,7 +1,7 @@
 import { Controller, Get, Param, Post, Body, Put, Delete, UseGuards, Query } from '@nestjs/common';
 import { ShoppingService } from './shopping.service';
-import { CreateShoppingDto } from './dto/create-shopping.dto';
-import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { CreateShoppingDto, UpdateShoppingDto } from './dto/create-shopping.dto';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
 @Controller('shopping')
 export class ShoppingController {
@@ -30,7 +30,7 @@ export class ShoppingController {
 
     @UseGuards(JwtAuthGuard)
     @Put(':id')
-    async updateShopping(@Param('id') id: string, @Body() shopping: CreateShoppingDto) {
+    async updateShopping(@Param('id') id: string, @Body() shopping: UpdateShoppingDto) {
         return this.shoppingService.updateShopping(id, shopping);
     }
 

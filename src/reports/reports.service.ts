@@ -1,234 +1,157 @@
-import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Between } from 'typeorm';
-import { Sale } from '../sales/entities/sales.entity';
-import { Attention } from '../attentions/entities/attentions.entity';
-import { SaleService } from '../sales/entities/sales-services.entity';
-import { ParkingPayment } from '../parkings/entities/parking-payments.entity';
-import { AccountsReceivablePayment } from '../accountsReceivable/entities/accounts-receivable-payments.entity';
-import { Expense } from '../expenses/entities/expenses.entity';
-import { Shopping } from '../shopping/entities/shopping.entity';
-import { Product } from '../products/entities/products.entity';
+import { Injectable, Logger, Inject } from '@nestjs/common';
+import { DataSource } from 'typeorm';
+import { IReportsRepository, REPORTS_REPOSITORY_TOKEN } from './interfaces/reports-manager.interface';
+import { WasherActivityReportDto, FinancialReportDto } from './dto/reports.dto';
 import * as dayjs from 'dayjs';
 
 @Injectable()
 export class ReportsService {
+  private readonly logger = new Logger(ReportsService.name);
+
   constructor(
-    @InjectRepository(Sale)
-    private salesRepository: Repository<Sale>,
-    @InjectRepository(Attention)
-    private attentionsRepository: Repository<Attention>,
-    @InjectRepository(SaleService)
-    private saleServicesRepository: Repository<SaleService>,
-    @InjectRepository(ParkingPayment)
-    private parkingPaymentsRepository: Repository<ParkingPayment>,
-    @InjectRepository(AccountsReceivablePayment)
-    private accountsReceivablePaymentsRepository: Repository<AccountsReceivablePayment>,
-    @InjectRepository(Expense)
-    private expensesRepository: Repository<Expense>,
-    @InjectRepository(Shopping)
-    private shoppingRepository: Repository<Shopping>,
-    @InjectRepository(Product)
-    private productsRepository: Repository<Product>,
+    @Inject(REPORTS_REPOSITORY_TOKEN)
+    private readonly reportsRepository: IReportsRepository,
+    private readonly dataSource: DataSource,
   ) {}
 
-  async getWasherActivityReport(startDate: string, endDate: string, washerId: string) {
-    // Use dayjs for date manipulation
-    const startOfDay = dayjs(startDate).startOf('day').toDate();
-    const endOfDay = dayjs(endDate).endOf('day').toDate();
+  async getWasherActivityReport(startDate: string, endDate: string, washerId: string): Promise<WasherActivityReportDto> {
+    this.logger.log(`Generating washer activity report for washer ${washerId} from ${startDate} to ${endDate}`);
 
-    // Query attentions table with SaleService relations
-    const attentions = await this.attentionsRepository
-      .createQueryBuilder('attention')
-      .leftJoinAndSelect('attention.vehicleId', 'vehicle')
-      .leftJoinAndSelect('attention.washerId', 'washer')
-      .leftJoinAndSelect('attention.saleServices', 'saleServices')
-      .leftJoinAndSelect('saleServices.serviceId', 'service')
-      .where('attention.washerId = :washerId', { washerId })
-      .andWhere('attention.createAt BETWEEN :startOfDay AND :endOfDay', {
-        startOfDay,
-        endOfDay,
-      })
-      .getMany();
+    try {
+      // Use dayjs for date manipulation
+      const startOfDay = dayjs(startDate).startOf('day').toDate();
+      const endOfDay = dayjs(endDate).endOf('day').toDate();
 
-    // Query sales table
-    const sales = await this.salesRepository
-      .createQueryBuilder('sale')
-      .leftJoinAndSelect('sale.productId', 'product')
-      .leftJoinAndSelect('sale.attentionId', 'attention')
-      .leftJoinAndSelect('sale.washerId', 'washer')
-      .where('sale.washerId = :washerId', { washerId })
-      .andWhere('sale.createAt BETWEEN :startOfDay AND :endOfDay', {
-        startOfDay,
-        endOfDay,
-      })
-      .getMany();
+      // Get data from repository
+      const { attentions, sales, saleServices } = await this.reportsRepository.getWasherActivityData(startOfDay, endOfDay, washerId);
 
-    // Query sale-services by attentionId from the found attentions
-    const attentionIds = attentions.map(attention => attention.id);
-    const saleServices = attentionIds.length > 0 
-      ? await this.saleServicesRepository
-          .createQueryBuilder('saleService')
-          .leftJoinAndSelect('saleService.serviceId', 'service')
-          .leftJoinAndSelect('saleService.attentionId', 'attention')
-          .where('saleService.attentionId IN (:...attentionIds)', { attentionIds })
-          .andWhere('saleService.createAt BETWEEN :startOfDay AND :endOfDay', {
-            startOfDay,
-            endOfDay,
-          })
-          .getMany()
-      : [];
+      // Add washerProfit calculation to each attention
+      const attentionsWithProfit = attentions.map(attention => {
+        // Calculate the sum of all service values for this attention
+        const totalServiceValue = attention.saleServices?.reduce((sum, saleService) => {
+          return sum + (saleService.serviceId?.value || 0);
+        }, 0) || 0;
 
-    // Add washerProfit calculation to each attention
-    const attentionsWithProfit = attentions.map(attention => {
-      // Calculate the sum of all service values for this attention
-      const totalServiceValue = attention.saleServices?.reduce((sum, saleService) => {
-        return sum + (saleService.serviceId?.value || 0);
-      }, 0) || 0;
+        // Calculate washer profit: (totalServiceValue * percentage) / 100
+        const washerProfit = (totalServiceValue * attention.percentage) / 100;
 
-      // Calculate washer profit: (totalServiceValue * percentage) / 100
-      const washerProfit = (totalServiceValue * attention.percentage) / 100;
+        return {
+          ...attention,
+          washerProfit,
+        };
+      });
 
-      return {
-        ...attention,
-        washerProfit,
+      const report: WasherActivityReportDto = {
+        startDate,
+        endDate,
+        washerId,
+        attentions: attentionsWithProfit,
+        sales,
+        saleServices,
+        summary: {
+          totalAttentions: attentions.length,
+          totalSales: sales.length,
+          totalSaleServices: saleServices.length,
+        },
       };
-    });
 
-    return {
-      startDate,
-      endDate,
-      washerId,
-      attentions: attentionsWithProfit,
-      sales,
-      saleServices,
-      summary: {
-        totalAttentions: attentions.length,
-        totalSales: sales.length,
-        totalSaleServices: saleServices.length,
-      },
-    };
+      this.logger.log(`Washer activity report generated successfully for washer ${washerId}`);
+      return report;
+    } catch (error) {
+      this.logger.error(`Error generating washer activity report for washer ${washerId}`, error.stack);
+      throw error;
+    }
   }
 
-  async getFinancialReport(startDate: string, endDate: string) {
-    // Use dayjs for date manipulation
-    const startOfDay = dayjs(startDate).startOf('day').toDate();
-    const endOfDay = dayjs(endDate).endOf('day').toDate();
+  async getFinancialReport(startDate: string, endDate: string): Promise<FinancialReportDto> {
+    this.logger.log(`Generating financial report from ${startDate} to ${endDate}`);
 
-    // 1. Calculate total sales (quantity * saleValue from products)
-    const salesData = await this.salesRepository
-      .createQueryBuilder('sale')
-      .leftJoinAndSelect('sale.productId', 'product')
-      .where('sale.date BETWEEN :startOfDay AND :endOfDay', {
-        startOfDay,
-        endOfDay,
-      })
-      .getMany();
+    try {
+      // Use dayjs for date manipulation
+      const startOfDay = dayjs(startDate).startOf('day').toDate();
+      const endOfDay = dayjs(endDate).endOf('day').toDate();
 
-    const totalSales = salesData.reduce((sum, sale) => {
-      return sum + (sale.quantity * (sale.productId?.saleValue || 0));
-    }, 0);
+      // Get data from repository
+      const {
+        salesData,
+        servicesSalesData,
+        parkingPaymentsData,
+        accountsReceivablePaymentsData,
+        shoppingData,
+        expensesData,
+      } = await this.reportsRepository.getFinancialReportData(startOfDay, endOfDay);
 
-    // 2. Calculate total service sales from sales-services entity
-    const servicesSalesData = await this.saleServicesRepository
-      .createQueryBuilder('saleService')
-      .where('saleService.createAt BETWEEN :startOfDay AND :endOfDay', {
-        startOfDay,
-        endOfDay,
-      })
-      .getMany();
+      // 1. Calculate total sales (quantity * saleValue from products)
+      const totalSales = salesData.reduce((sum, sale) => {
+        return sum + (sale.quantity * (sale.productId?.saleValue || 0));
+      }, 0);
 
-    const totalServiceSales = servicesSalesData.reduce((sum, saleService) => {
-      return sum + saleService.value;
-    }, 0);
+      // 2. Calculate total service sales from sales-services entity
+      const totalServiceSales = servicesSalesData.reduce((sum, saleService) => {
+        return sum + saleService.value;
+      }, 0);
 
-    // 3. Calculate total parking payments
-    const parkingPaymentsData = await this.parkingPaymentsRepository
-      .createQueryBuilder('parkingPayment')
-      .where('parkingPayment.date BETWEEN :startDate AND :endDate', {
-        startDate,
-        endDate,
-      })
-      .getMany();
+      // 3. Calculate total parking payments
+      const totalParkingPayments = parkingPaymentsData.reduce((sum, payment) => {
+        return sum + payment.value;
+      }, 0);
 
-    const totalParkingPayments = parkingPaymentsData.reduce((sum, payment) => {
-      return sum + payment.value;
-    }, 0);
+      // 4. Calculate total accounts receivable payments
+      const totalAccountsReceivablePayments = accountsReceivablePaymentsData.reduce((sum, payment) => {
+        return sum + payment.value;
+      }, 0);
 
-    // 4. Calculate total accounts receivable payments
-    const accountsReceivablePaymentsData = await this.accountsReceivablePaymentsRepository
-      .createQueryBuilder('accountsReceivablePayment')
-      .where('accountsReceivablePayment.date BETWEEN :startDate AND :endDate', {
-        startDate,
-        endDate,
-      })
-      .getMany();
+      // 5. Calculate total shopping costs (quantity * valueBuys from products)
+      const totalShoppingCosts = shoppingData.reduce((sum, shopping) => {
+        return sum + (shopping.quantity * (shopping.product?.valueBuys || 0));
+      }, 0);
 
-    const totalAccountsReceivablePayments = accountsReceivablePaymentsData.reduce((sum, payment) => {
-      return sum + payment.value;
-    }, 0);
+      // 6. Calculate total expenses
+      const totalExpenses = expensesData.reduce((sum, expense) => {
+        return sum + expense.value;
+      }, 0);
 
-    // 5. Calculate total shopping costs (quantity * valueBuys from products)
-    const shoppingData = await this.shoppingRepository
-      .createQueryBuilder('shopping')
-      .leftJoinAndSelect('shopping.product', 'product')
-      .where('shopping.date BETWEEN :startOfDay AND :endOfDay', {
-        startOfDay,
-        endOfDay,
-      })
-      .getMany();
+      // Calculate total income and net profit
+      const totalIncome = totalSales + totalServiceSales + totalParkingPayments + totalAccountsReceivablePayments;
+      const totalCosts = totalShoppingCosts + totalExpenses;
+      const netProfit = totalIncome - totalCosts;
 
-    const totalShoppingCosts = shoppingData.reduce((sum, shopping) => {
-      return sum + (shopping.quantity * (shopping.product?.valueBuys || 0));
-    }, 0);
+      const report: FinancialReportDto = {
+        period: {
+          startDate,
+          endDate,
+        },
+        income: {
+          totalSales,
+          totalServiceSales,
+          totalParkingPayments,
+          totalAccountsReceivablePayments,
+          totalIncome,
+        },
+        costs: {
+          totalShoppingCosts,
+          totalExpenses,
+          totalCosts,
+        },
+        summary: {
+          netProfit,
+          profitMargin: totalIncome > 0 ? ((netProfit / totalIncome) * 100).toFixed(2) : '0.00',
+        },
+        details: {
+          salesCount: salesData.length,
+          serviceSalesCount: servicesSalesData.length,
+          parkingPaymentsCount: parkingPaymentsData.length,
+          accountsReceivablePaymentsCount: accountsReceivablePaymentsData.length,
+          shoppingCount: shoppingData.length,
+          expensesCount: expensesData.length,
+        },
+      };
 
-    // 6. Calculate total expenses
-    const expensesData = await this.expensesRepository
-      .createQueryBuilder('expense')
-      .where('expense.date BETWEEN :startDate AND :endDate', {
-        startDate,
-        endDate,
-      })
-      .getMany();
-
-    const totalExpenses = expensesData.reduce((sum, expense) => {
-      return sum + expense.value;
-    }, 0);
-
-    // Calculate total income and net profit
-    const totalIncome = totalSales + totalServiceSales + totalParkingPayments + totalAccountsReceivablePayments;
-    const totalCosts = totalShoppingCosts + totalExpenses;
-    const netProfit = totalIncome - totalCosts;
-
-    return {
-      period: {
-        startDate,
-        endDate,
-      },
-      income: {
-        totalSales,
-        totalServiceSales,
-        totalParkingPayments,
-        totalAccountsReceivablePayments,
-        totalIncome,
-      },
-      costs: {
-        totalShoppingCosts,
-        totalExpenses,
-        totalCosts,
-      },
-      summary: {
-        netProfit,
-        profitMargin: totalIncome > 0 ? ((netProfit / totalIncome) * 100).toFixed(2) : '0.00',
-      },
-      details: {
-        salesCount: salesData.length,
-        serviceSalesCount: servicesSalesData.length,
-        parkingPaymentsCount: parkingPaymentsData.length,
-        accountsReceivablePaymentsCount: accountsReceivablePaymentsData.length,
-        shoppingCount: shoppingData.length,
-        expensesCount: expensesData.length,
-      },
-    };
+      this.logger.log(`Financial report generated successfully for period ${startDate} to ${endDate}`);
+      return report;
+    } catch (error) {
+      this.logger.error(`Error generating financial report for period ${startDate} to ${endDate}`, error.stack);
+      throw error;
+    }
   }
 }

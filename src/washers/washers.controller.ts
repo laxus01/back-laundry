@@ -1,7 +1,7 @@
 import { Controller, Get, Post, Put, Delete, Body, Param, UseGuards } from '@nestjs/common';
 import { WashersService } from './washers.service';
-import { CreateWasherDto } from './dto/washers.dto';
-import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { CreateWasherDto, UpdateWasherDto } from './dto/washers.dto';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
 @Controller('washers')
 export class WashersController {
@@ -27,7 +27,7 @@ export class WashersController {
 
     @UseGuards(JwtAuthGuard)
     @Put(':id')
-    async updateWasher(@Param('id') id: string, @Body() washer: CreateWasherDto) {
+    async updateWasher(@Param('id') id: string, @Body() washer: UpdateWasherDto) {
         return this.washerService.updateWasher(id, washer);
     }
 

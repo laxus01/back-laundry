@@ -1,65 +1,70 @@
-import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Expense } from 'src/expenses/entities/expenses.entity';
-import { Repository } from 'typeorm';
-import { CreateExpenseDto } from './dto/create-expense.dto';
-import * as dayjs from 'dayjs';
+import { Injectable, Logger, Inject } from '@nestjs/common';
+import { DataSource } from 'typeorm';
+import { CreateExpenseDto, UpdateExpenseDto } from './dto/create-expense.dto';
+import { Expense } from './entities/expenses.entity';
+import { IDateRangeQuery, IExpensesRepository, EXPENSES_REPOSITORY_TOKEN } from './interfaces/expenses-manager.interface';
 
 @Injectable()
 export class ExpensesService {
+  private readonly logger = new Logger(ExpensesService.name);
+
   constructor(
-    @InjectRepository(Expense) private expenseRepository: Repository<Expense>,
+    @Inject(EXPENSES_REPOSITORY_TOKEN)
+    private readonly expensesRepository: IExpensesRepository,
+    private readonly dataSource: DataSource,
   ) {}
 
-  async getExpenses(startDate?: string, endDate?: string) {
-    // If date range is provided, use QueryBuilder for date filtering
+  async getExpenses(startDate?: string, endDate?: string): Promise<Expense[]> {
+    this.logger.log(`Fetching expenses with date range: ${startDate} - ${endDate}`);
+    
+    // If date range is provided, use date filtering
     if (startDate && endDate) {
-      const startOfDay = dayjs(startDate).startOf('day').toDate();
-      const endOfDay = dayjs(endDate).endOf('day').toDate();
-
-      return this.expenseRepository
-        .createQueryBuilder('expense')
-        .where('expense.date >= :startDate', { startDate: startOfDay })
-        .andWhere('expense.date <= :endDate', { endDate: endOfDay })
-        .orderBy('expense.createAt', 'DESC')
-        .getMany();
+      const dateRange: IDateRangeQuery = { startDate, endDate };
+      return this.expensesRepository.findByDateRange(dateRange);
     }
 
     // Default behavior when no date range is provided
-    return this.expenseRepository.find({
-      order: { createAt: 'DESC' }
+    return this.expensesRepository.findAll();
+  }
+
+  async getExpenseById(id: string): Promise<Expense | null> {
+    this.logger.log(`Fetching expense with ID: ${id}`);
+    
+    return this.expensesRepository.findById(id);
+  }
+
+  async createExpense(expenseData: CreateExpenseDto): Promise<Expense> {
+    this.logger.log(`Creating new expense: ${expenseData.expense}`);
+
+    return this.dataSource.transaction(async (manager) => {
+      // Create the expense
+      const expense = await this.expensesRepository.create(expenseData);
+      
+      this.logger.log(`Expense created successfully with ID: ${expense.id}`);
+      return expense;
     });
   }
 
-  async getExpenseById(id: string) {
-    return this.expenseRepository.findOne({
-      where: { id },
+  async updateExpense(id: string, expenseData: UpdateExpenseDto): Promise<Expense> {
+    this.logger.log(`Updating expense with ID: ${id}`);
+
+    return this.dataSource.transaction(async (manager) => {
+      // Update the expense record
+      const updatedExpense = await this.expensesRepository.update(id, expenseData);
+      
+      this.logger.log(`Expense updated successfully: ${id}`);
+      return updatedExpense;
     });
   }
 
-  async createExpense(expense: CreateExpenseDto) {
-    const newExpense = this.expenseRepository.create(expense);
-    return this.expenseRepository.save(newExpense);
-  }
+  async deleteExpense(id: string): Promise<void> {
+    this.logger.log(`Deleting expense with ID: ${id}`);
 
-  async updateExpense(id: string, expense: CreateExpenseDto) {
-    const existingExpense = await this.expenseRepository.findOne({
-      where: { id },
+    return this.dataSource.transaction(async (manager) => {
+      // Delete the expense
+      await this.expensesRepository.delete(id);
+      
+      this.logger.log(`Expense deleted successfully: ${id}`);
     });
-    if (!existingExpense) {
-      throw new Error('Expense not found');
-    }
-    const updatedExpense = { ...existingExpense, ...expense };
-    return this.expenseRepository.save(updatedExpense);
-  }
-
-  async deleteExpense(id: string) {
-    const existingExpense = await this.expenseRepository.findOne({
-      where: { id },
-    });
-    if (!existingExpense) {
-      throw new Error('Expense not found');
-    }
-    return this.expenseRepository.remove(existingExpense);
   }
 }

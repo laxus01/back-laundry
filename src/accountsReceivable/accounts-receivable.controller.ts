@@ -1,7 +1,7 @@
 import { Controller, Get, Param, Post, Body, Put, Delete, UseGuards, Query } from '@nestjs/common';
 import { AccountsReceivableService } from './accounts-receivable.service';
 import { CreateAccountsReceivableDto, UpdateAccountsReceivableDto } from './dto/create-accounts-receivable.dto';
-import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
 @Controller('accounts-receivable')
 export class AccountsReceivableController {

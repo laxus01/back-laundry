@@ -1,5 +1,5 @@
 import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, JoinColumn, OneToMany } from 'typeorm';
-import { Vehicle } from 'src/vehicles/entities/vehicle.entity';
+import { Vehicle } from '../../vehicles/entities/vehicle.entity';
 import { AccountsReceivablePayment } from './accounts-receivable-payments.entity';
 
 @Entity({ name: 'accounts_receivable' })

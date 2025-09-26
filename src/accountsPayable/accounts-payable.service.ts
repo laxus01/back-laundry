@@ -1,124 +1,96 @@
-import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { AccountsPayable } from './entities/accounts-payable.entity';
+import { Injectable, Logger, Inject } from '@nestjs/common';
+import { DataSource } from 'typeorm';
 import { CreateAccountsPayableDto, UpdateAccountsPayableDto } from './dto/create-accounts-payable.dto';
-import { AccountsPayablePayment } from './entities/accounts-payable-payments.entity';
-import * as dayjs from 'dayjs';
+import { AccountsPayable } from './entities/accounts-payable.entity';
+import { 
+  IAccountsPayableRepository, 
+  IBalanceCalculatorService,
+  IDateRangeQuery, 
+  IAccountsPayableWithBalance,
+  ACCOUNTS_PAYABLE_REPOSITORY_TOKEN,
+  BALANCE_CALCULATOR_SERVICE_TOKEN 
+} from './interfaces/accounts-payable-manager.interface';
 
 @Injectable()
 export class AccountsPayableService {
+  private readonly logger = new Logger(AccountsPayableService.name);
+
   constructor(
-    @InjectRepository(AccountsPayable)
-    private accountsPayableRepository: Repository<AccountsPayable>,
-    @InjectRepository(AccountsPayablePayment)
-    private accountsPayablePaymentRepository: Repository<AccountsPayablePayment>,
+    @Inject(ACCOUNTS_PAYABLE_REPOSITORY_TOKEN)
+    private readonly accountsPayableRepository: IAccountsPayableRepository,
+    @Inject(BALANCE_CALCULATOR_SERVICE_TOKEN)
+    private readonly balanceCalculator: IBalanceCalculatorService,
+    private readonly dataSource: DataSource,
   ) {}
 
-  async getAccountsPayable(startDate?: string, endDate?: string) {
-    let accountsPayable;
+  async getAccountsPayable(startDate?: string, endDate?: string): Promise<IAccountsPayableWithBalance[]> {
+    this.logger.log(`Fetching accounts payable with date range: ${startDate} - ${endDate}`);
+    
+    let accountsPayable: AccountsPayable[];
 
-    // If date range is provided, use QueryBuilder for date filtering
+    // If date range is provided, use date filtering
     if (startDate && endDate) {
-      const startOfDay = dayjs(startDate).startOf('day').toDate();
-      const endOfDay = dayjs(endDate).endOf('day').toDate();
-
-      accountsPayable = await this.accountsPayableRepository
-        .createQueryBuilder('accountsPayable')
-        .leftJoinAndSelect('accountsPayable.providerId', 'provider')
-        .where('accountsPayable.date >= :startDate', { startDate: startOfDay })
-        .andWhere('accountsPayable.date <= :endDate', { endDate: endOfDay })
-        .orderBy('accountsPayable.createAt', 'DESC')
-        .getMany();
+      const dateRange: IDateRangeQuery = { startDate, endDate };
+      accountsPayable = await this.accountsPayableRepository.findByDateRange(dateRange);
     } else {
       // Default behavior when no date range is provided
-      accountsPayable = await this.accountsPayableRepository.find({
-        relations: ['providerId'],
-        order: { createAt: 'DESC' }
-      });
+      accountsPayable = await this.accountsPayableRepository.findAll();
     }
-  
+
     // Calculate balance for each accounts payable
-    const accountsPayableWithBalance = await Promise.all(
-      accountsPayable.map(async (ap) => {
-        const payments = await this.accountsPayablePaymentRepository.find({
-          where: { accountsPayableId: ap.id },
-        });
-        
-        const totalPaid = payments.reduce((sum, payment) => sum + payment.value, 0);
-        const balance = ap.value - totalPaid;
-  
-        return {
-          ...ap,
-          balance
-        };
-      })
-    );
-  
-    return accountsPayableWithBalance;
+    return this.balanceCalculator.calculateBalanceForMultiple(accountsPayable);
   }
 
-  async getAccountsPayableById(id: string) {
-    return this.accountsPayableRepository.findOne({
-      where: { id },
-      relations: ['providerId'],
-    });
-  }
-
-  async createAccountsPayable(accountsPayable: CreateAccountsPayableDto) {
-    const newAccountsPayable = this.accountsPayableRepository.create({
-      ...accountsPayable,
-      providerId: { id: accountsPayable.providerId } as any,
-    });
-    return this.accountsPayableRepository.save(newAccountsPayable);
-  }
-
-  async updateAccountsPayable(id: string, accountsPayable: UpdateAccountsPayableDto) {
-    const existingAccountsPayable = await this.accountsPayableRepository.findOne({
-      where: { id },
-    });
-    if (!existingAccountsPayable) {
-      throw new Error('Accounts payable not found');
-    }
+  async getAccountsPayableById(id: string): Promise<AccountsPayable | null> {
+    this.logger.log(`Fetching accounts payable with ID: ${id}`);
     
-    // Handle providerId conversion if provided
-    const updateData = { ...accountsPayable };
-    if (accountsPayable.providerId) {
-      updateData.providerId = { id: accountsPayable.providerId } as any;
-    }
+    return this.accountsPayableRepository.findById(id);
+  }
+
+  async getAccountsPayableByProvider(providerId: string): Promise<AccountsPayable[]> {
+    this.logger.log(`Fetching accounts payable for provider: ${providerId}`);
     
-    const updatedAccountsPayable = { ...existingAccountsPayable, ...updateData };
-    return this.accountsPayableRepository.save(updatedAccountsPayable);
+    return this.accountsPayableRepository.findByProvider(providerId);
   }
 
-  async deleteAccountsPayable(id: string) {
-    const existingAccountsPayable = await this.accountsPayableRepository.findOne({
-      where: { id },
-    });
-    if (!existingAccountsPayable) {
-      throw new Error('Accounts payable not found');
-    }
-
-    // First, delete all related payments to avoid foreign key constraint error
-    await this.accountsPayablePaymentRepository.delete({
-      accountsPayableId: id,
-    });
-
-    // Then delete the accounts payable record
-    return this.accountsPayableRepository.remove(existingAccountsPayable);
+  async getAccountsPayableByState(state: number): Promise<AccountsPayable[]> {
+    this.logger.log(`Fetching accounts payable with state: ${state}`);
+    
+    return this.accountsPayableRepository.findByState(state);
   }
 
-  async getAccountsPayableByProvider(providerId: string) {
-    return this.accountsPayableRepository.find({
-      where: { providerId: { id: providerId } },
-      relations: ['providerId'],
+  async createAccountsPayable(accountsPayableData: CreateAccountsPayableDto): Promise<AccountsPayable> {
+    this.logger.log(`Creating new accounts payable for provider: ${accountsPayableData.providerId}`);
+
+    return this.dataSource.transaction(async (manager) => {
+      // Create the accounts payable
+      const accountsPayable = await this.accountsPayableRepository.create(accountsPayableData);
+      
+      this.logger.log(`Accounts payable created successfully with ID: ${accountsPayable.id}`);
+      return accountsPayable;
     });
   }
 
-  async getAccountsPayableByState(state: number) {
-    return this.accountsPayableRepository.find({
-      where: { state },
-      relations: ['providerId'],
+  async updateAccountsPayable(id: string, accountsPayableData: UpdateAccountsPayableDto): Promise<AccountsPayable> {
+    this.logger.log(`Updating accounts payable with ID: ${id}`);
+
+    return this.dataSource.transaction(async (manager) => {
+      // Update the accounts payable record
+      const updatedAccountsPayable = await this.accountsPayableRepository.update(id, accountsPayableData);
+      
+      this.logger.log(`Accounts payable updated successfully: ${id}`);
+      return updatedAccountsPayable;
+    });
+  }
+
+  async deleteAccountsPayable(id: string): Promise<void> {
+    this.logger.log(`Deleting accounts payable with ID: ${id}`);
+
+    return this.dataSource.transaction(async (manager) => {
+      // Delete the accounts payable (including related payments)
+      await this.accountsPayableRepository.delete(id);
+      
+      this.logger.log(`Accounts payable deleted successfully: ${id}`);
     });
   }
 }

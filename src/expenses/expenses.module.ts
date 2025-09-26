@@ -1,14 +1,24 @@
 import { Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
 import { ExpensesService } from './expenses.service';
 import { ExpensesController } from './expenses.controller';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { Expense } from 'src/expenses/entities/expenses.entity';
+import { Expense } from './entities/expenses.entity';
+import { ExpensesRepository } from './repositories/expenses.repository';
+import { EXPENSES_REPOSITORY_TOKEN } from './interfaces/expenses-manager.interface';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Expense]),
   ],
-  providers: [ExpensesService],
-  controllers: [ExpensesController]
+  controllers: [ExpensesController],
+  providers: [
+    ExpensesService,
+    ExpensesRepository,
+    {
+      provide: EXPENSES_REPOSITORY_TOKEN,
+      useClass: ExpensesRepository,
+    },
+  ],
+  exports: [ExpensesService],
 })
 export class ExpensesModule {}

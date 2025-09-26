@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Put, Delete, Body, Param, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Body, Param, UseGuards, Query } from '@nestjs/common';
 import { ParkingPaymentsService } from './parking-payments.service';
 import { CreateParkingPaymentDto, UpdateParkingPaymentDto } from './dto/parking-payment.dto';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
@@ -9,7 +9,10 @@ export class ParkingPaymentsController {
 
   @UseGuards(JwtAuthGuard)
   @Get()
-  async getParkingPayments() {
+  async getParkingPayments(@Query('parkingId') parkingId?: string) {
+    if (parkingId) {
+      return this.parkingPaymentsService.getParkingPaymentsByParkingId(parkingId);
+    }
     return this.parkingPaymentsService.getParkingPayments();
   }
 

@@ -1,5 +1,5 @@
 import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, JoinColumn, OneToMany } from 'typeorm';
-import { Provider } from 'src/provider/entities/provider.entity';
+import { Provider } from '../../provider/entities/provider.entity';
 import { AccountsPayablePayment } from './accounts-payable-payments.entity';
 
 @Entity({ name: 'accounts_payable' })
