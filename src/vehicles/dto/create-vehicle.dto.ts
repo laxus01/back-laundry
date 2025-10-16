@@ -4,8 +4,8 @@ import { PartialType } from '@nestjs/mapped-types';
 export class CreateVehicleDto {
   id?: string;
   plate: string;
-  client: string;
-  phone: string;
+  client?: string;
+  phone?: string;
   typeVehicleId: TypeVehicle;
 }
 
