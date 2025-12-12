@@ -1,4 +1,4 @@
-import { Injectable, Logger, Inject, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, Inject, NotFoundException, BadRequestException, ConflictException } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import { User } from './entities/user.entity';
 import { CreateUserDto, UpdateUserDto } from './dto/create-user.dto';
@@ -57,10 +57,14 @@ export class UsersService {
 
     return this.dataSource.transaction(async (manager) => {
       try {
+        if (!userData?.user || !userData?.password) {
+          throw new BadRequestException('user y password son requeridos');
+        }
+
         // Check if username already exists
         const existingUser = await this.usersRepository.findByUsername(userData.user);
         if (existingUser) {
-          throw new Error('El nombre de usuario ya existe en la base de datos');
+          throw new ConflictException('El nombre de usuario ya existe en la base de datos');
         }
 
         // Hash the password before saving
