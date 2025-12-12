@@ -1,7 +1,7 @@
 import { Entity, Column, PrimaryColumn, OneToMany } from 'typeorm';
 import { Vehicle } from './vehicle.entity';
 
-@Entity({ name: 'type-vehicles' })
+@Entity({ name: 'type_vehicles' })
 export class TypeVehicle {
   @PrimaryColumn('uuid')
   id: string;
