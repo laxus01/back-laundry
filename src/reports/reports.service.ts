@@ -29,7 +29,7 @@ export class ReportsService {
       const attentionsWithProfit = attentions.map(attention => {
         // Calculate the sum of all service values for this attention
         const totalServiceValue = attention.saleServices?.reduce((sum, saleService) => {
-          return sum + (saleService.serviceId?.value || 0);
+          return sum + (saleService.value || 0);
         }, 0) || 0;
 
         // Calculate washer profit: (totalServiceValue * percentage) / 100
