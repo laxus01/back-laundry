@@ -5,10 +5,15 @@ export interface IWasherActivityReport {
   attentions: any[];
   sales: any[];
   saleServices: any[];
+  advances: any[];
   summary: {
     totalAttentions: number;
     totalSales: number;
     totalSaleServices: number;
+    totalAdvances: number;
+    totalAdvancesValue: number;
+    totalProfit: number;
+    netProfit: number;
   };
 }
 
@@ -48,6 +53,7 @@ export interface IReportsRepository {
     attentions: any[];
     sales: any[];
     saleServices: any[];
+    advances: any[];
   }>;
 
   getFinancialReportData(startDate: Date, endDate: Date): Promise<{

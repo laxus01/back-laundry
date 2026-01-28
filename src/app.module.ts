@@ -19,6 +19,7 @@ import { ReportsModule } from './reports/reports.module';
 import { AccountsReceivableModule } from './accountsReceivable/accounts-receivable.module';
 import { ProvidersModule } from './provider/providers.module';
 import { AccountsPayableModule } from './accountsPayable/accounts-payable.module';
+import { AdvancesModule } from './advances/advances.module';
 
 @Module({
   imports: [
@@ -58,6 +59,7 @@ import { AccountsPayableModule } from './accountsPayable/accounts-payable.module
     AccountsReceivableModule,
     ProvidersModule,
     AccountsPayableModule,
+    AdvancesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

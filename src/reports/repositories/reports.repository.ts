@@ -9,6 +9,7 @@ import { AccountsReceivablePayment } from '../../accountsReceivable/entities/acc
 import { Expense } from '../../expenses/entities/expenses.entity';
 import { Shopping } from '../../shopping/entities/shopping.entity';
 import { Product } from '../../products/entities/products.entity';
+import { Advance } from '../../advances/entities/advances.entity';
 import { IReportsRepository } from '../interfaces/reports-manager.interface';
 
 @Injectable()
@@ -30,12 +31,15 @@ export class ReportsRepository implements IReportsRepository {
     private readonly shoppingRepository: Repository<Shopping>,
     @InjectRepository(Product)
     private readonly productsRepository: Repository<Product>,
+    @InjectRepository(Advance)
+    private readonly advancesRepository: Repository<Advance>,
   ) {}
 
   async getWasherActivityData(startDate: Date, endDate: Date, washerId: string): Promise<{
     attentions: any[];
     sales: any[];
     saleServices: any[];
+    advances: any[];
   }> {
     // Query attentions table with SaleService relations
     const attentions = await this.attentionsRepository
@@ -79,10 +83,23 @@ export class ReportsRepository implements IReportsRepository {
           .getMany()
       : [];
 
+    // Query advances for the washer
+    const advances = await this.advancesRepository
+      .createQueryBuilder('advance')
+      .leftJoinAndSelect('advance.washer', 'washer')
+      .where('advance.washerId = :washerId', { washerId })
+      .andWhere('advance.date BETWEEN :startDate AND :endDate', {
+        startDate,
+        endDate,
+      })
+      .andWhere('advance.state = :state', { state: 1 })
+      .getMany();
+
     return {
       attentions,
       sales,
       saleServices,
+      advances,
     };
   }
 

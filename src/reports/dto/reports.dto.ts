@@ -7,10 +7,15 @@ export class WasherActivityReportDto implements IWasherActivityReport {
   attentions: any[];
   sales: any[];
   saleServices: any[];
+  advances: any[];
   summary: {
     totalAttentions: number;
     totalSales: number;
     totalSaleServices: number;
+    totalAdvances: number;
+    totalAdvancesValue: number;
+    totalProfit: number;
+    netProfit: number;
   };
 }
 

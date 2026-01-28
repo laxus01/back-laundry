@@ -14,6 +14,7 @@ import { AccountsReceivablePayment } from '../accountsReceivable/entities/accoun
 import { Expense } from '../expenses/entities/expenses.entity';
 import { Shopping } from '../shopping/entities/shopping.entity';
 import { Product } from '../products/entities/products.entity';
+import { Advance } from '../advances/entities/advances.entity';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { Product } from '../products/entities/products.entity';
       Expense,
       Shopping,
       Product,
+      Advance,
     ]),
   ],
   controllers: [ReportsController],

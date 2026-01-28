@@ -23,7 +23,10 @@ export class ReportsService {
       const endOfDay = dayjs(endDate).endOf('day').toDate();
 
       // Get data from repository
-      const { attentions, sales, saleServices } = await this.reportsRepository.getWasherActivityData(startOfDay, endOfDay, washerId);
+      const { attentions, sales, saleServices, advances } = await this.reportsRepository.getWasherActivityData(startOfDay, endOfDay, washerId);
+
+      // Calculate total advances for the period
+      const totalAdvances = advances.reduce((sum, advance) => sum + (advance.value || 0), 0);
 
       // Add washerProfit calculation to each attention
       const attentionsWithProfit = attentions.map(attention => {
@@ -41,6 +44,12 @@ export class ReportsService {
         };
       });
 
+      // Calculate total profit from all attentions
+      const totalProfit = attentionsWithProfit.reduce((sum, attention) => sum + (attention.washerProfit || 0), 0);
+
+      // Net profit after subtracting advances
+      const netProfit = totalProfit - totalAdvances;
+
       const report: WasherActivityReportDto = {
         startDate,
         endDate,
@@ -48,10 +57,15 @@ export class ReportsService {
         attentions: attentionsWithProfit,
         sales,
         saleServices,
+        advances,
         summary: {
           totalAttentions: attentions.length,
           totalSales: sales.length,
           totalSaleServices: saleServices.length,
+          totalAdvances: advances.length,
+          totalAdvancesValue: totalAdvances,
+          totalProfit,
+          netProfit,
         },
       };
 
