@@ -28,6 +28,11 @@ export class ReportsService {
       // Calculate total advances for the period
       const totalAdvances = advances.reduce((sum, advance) => sum + (advance.value || 0), 0);
 
+      // Calculate total sales of products
+      const totalSalesValue = sales.reduce((sum, sale) => {
+        return sum + (sale.quantity * (sale.productId?.saleValue || 0));
+      }, 0);
+
       // Add washerProfit calculation to each attention
       const attentionsWithProfit = attentions.map(attention => {
         // Calculate the sum of all service values for this attention
@@ -47,8 +52,8 @@ export class ReportsService {
       // Calculate total profit from all attentions
       const totalProfit = attentionsWithProfit.reduce((sum, attention) => sum + (attention.washerProfit || 0), 0);
 
-      // Net profit after subtracting advances
-      const netProfit = totalProfit - totalAdvances;
+      // Net profit after subtracting advances and product sales
+      const netProfit = totalProfit - totalAdvances - totalSalesValue;
 
       const report: WasherActivityReportDto = {
         startDate,
