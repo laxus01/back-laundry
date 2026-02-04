@@ -15,6 +15,26 @@ export class Attention {
   @Column()
   percentage: number;
 
+  @Column({ 
+    type: 'enum', 
+    enum: ['PAID', 'PENDING', 'PARTIAL'],
+    default: 'PAID',
+    nullable: true
+  })
+  paymentStatus: 'PAID' | 'PENDING' | 'PARTIAL';
+
+  @Column({ type: 'timestamp', nullable: true })
+  paymentDate: Date;
+
+  @Column({ type: 'timestamp', nullable: true })
+  finishDate: Date;
+
+  @Column({ type: 'int', default: 0, nullable: true })
+  totalAmount: number;
+
+  @Column({ type: 'text', nullable: true })
+  notes: string;
+
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   createAt: Date;
 

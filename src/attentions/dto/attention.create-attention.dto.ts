@@ -10,6 +10,11 @@ export class CreateAttentionDto {
   percentage: number;
   washerId: DeepPartial<Washer>;
   vehicleId: DeepPartial<Vehicle>;
+  paymentStatus?: 'PAID' | 'PENDING' | 'PARTIAL';
+  paymentDate?: Date;
+  finishDate: Date;
+  totalAmount: number;
+  notes?: string;
 }
 
 export class UpdateAttentionDto {
@@ -17,6 +22,17 @@ export class UpdateAttentionDto {
   percentage: number;
   washerId: DeepPartial<Washer>;
   vehicleId: DeepPartial<Vehicle>;
+  paymentStatus?: 'PAID' | 'PENDING' | 'PARTIAL';
+  paymentDate?: Date;
+  finishDate?: Date;
+  totalAmount?: number;
+  notes?: string;
+}
+
+export class UpdatePaymentStatusDto {
+  paymentStatus: 'PAID' | 'PENDING' | 'PARTIAL';
+  paymentDate?: Date;
+  notes?: string;
 }
 
 export class SaleServiceDto {
@@ -35,3 +51,5 @@ export class SaleProductDto {
   productId: DeepPartial<Product>;
   quantity: number;
 }
+
+export type PaymentStatus = 'PAID' | 'PENDING' | 'PARTIAL';

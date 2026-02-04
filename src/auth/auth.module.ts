@@ -17,7 +17,7 @@ import { AUTH_REPOSITORY_TOKEN } from './interfaces/auth-manager.interface';
     JwtModule.register({
       secret: jwtConstants.secret,
       signOptions: {
-        expiresIn: process.env.JWT_EXPIRES_IN || '1h',
+        expiresIn: process.env.JWT_EXPIRES_IN || '24h',
         issuer: 'laundry-app',
         audience: 'laundry-users'
       },

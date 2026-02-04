@@ -98,6 +98,9 @@ export class ReportsService {
         accountsReceivablePaymentsData,
         shoppingData,
         expensesData,
+        pendingPaymentsData,
+        pendingServicesData,
+        defaulterWashersData,
       } = await this.reportsRepository.getFinancialReportData(startOfDay, endOfDay);
 
       // 1. Calculate total sales (quantity * saleValue from products)
@@ -130,6 +133,21 @@ export class ReportsService {
         return sum + expense.value;
       }, 0);
 
+      // 7. Calculate total pending payments
+      const totalPendingPayments = pendingPaymentsData.reduce((sum, attention) => {
+        return sum + (attention.totalAmount || 0);
+      }, 0);
+
+      // 8. Calculate total pending services
+      const totalPendingServices = pendingServicesData.reduce((sum, saleService) => {
+        return sum + (saleService.value || 0);
+      }, 0);
+
+      // 9. Calculate total defaulter washers (unpaid)
+      const totalDefaulterWashers = defaulterWashersData.reduce((sum, defaulter) => {
+        return sum + (defaulter.amount || 0);
+      }, 0);
+
       // Calculate total income and net profit
       const totalIncome = totalSales + totalServiceSales + totalParkingPayments + totalAccountsReceivablePayments;
       const totalCosts = totalShoppingCosts + totalExpenses;
@@ -155,6 +173,9 @@ export class ReportsService {
         summary: {
           netProfit,
           profitMargin: totalIncome > 0 ? ((netProfit / totalIncome) * 100).toFixed(2) : '0.00',
+          totalPendingPayments,
+          totalPendingServices,
+          totalDefaulterWashers,
         },
         details: {
           salesCount: salesData.length,
@@ -163,6 +184,7 @@ export class ReportsService {
           accountsReceivablePaymentsCount: accountsReceivablePaymentsData.length,
           shoppingCount: shoppingData.length,
           expensesCount: expensesData.length,
+          pendingPaymentsCount: pendingPaymentsData.length,
         },
       };
 

@@ -37,6 +37,9 @@ export interface IFinancialReport {
   summary: {
     netProfit: number;
     profitMargin: string;
+    totalPendingPayments: number;
+    totalPendingServices: number;
+    totalDefaulterWashers: number;
   };
   details: {
     salesCount: number;
@@ -45,6 +48,7 @@ export interface IFinancialReport {
     accountsReceivablePaymentsCount: number;
     shoppingCount: number;
     expensesCount: number;
+    pendingPaymentsCount: number;
   };
 }
 
@@ -63,6 +67,9 @@ export interface IReportsRepository {
     accountsReceivablePaymentsData: any[];
     shoppingData: any[];
     expensesData: any[];
+    pendingPaymentsData: any[];
+    pendingServicesData: any[];
+    defaulterWashersData: any[];
   }>;
 }
 

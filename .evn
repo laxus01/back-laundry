@@ -1,6 +1,6 @@
 # Configuración JWT - IMPORTANTE: Cambia JWT_SECRET en producción
 JWT_SECRET=LaundryApp2024$SecureKey#BackendAuth!Migration*Safe&Strong
-JWT_EXPIRES_IN=1h
+JWT_EXPIRES_IN=24h
 
 # Base de datos
 DB_HOST=localhost

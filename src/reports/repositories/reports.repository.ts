@@ -10,6 +10,7 @@ import { Expense } from '../../expenses/entities/expenses.entity';
 import { Shopping } from '../../shopping/entities/shopping.entity';
 import { Product } from '../../products/entities/products.entity';
 import { Advance } from '../../advances/entities/advances.entity';
+import { DefaulterWasher } from '../../defaulter-washers/entities/defaulter-washers.entity';
 import { IReportsRepository } from '../interfaces/reports-manager.interface';
 
 @Injectable()
@@ -33,6 +34,8 @@ export class ReportsRepository implements IReportsRepository {
     private readonly productsRepository: Repository<Product>,
     @InjectRepository(Advance)
     private readonly advancesRepository: Repository<Advance>,
+    @InjectRepository(DefaulterWasher)
+    private readonly defaulterWashersRepository: Repository<DefaulterWasher>,
   ) {}
 
   async getWasherActivityData(startDate: Date, endDate: Date, washerId: string): Promise<{
@@ -110,6 +113,9 @@ export class ReportsRepository implements IReportsRepository {
     accountsReceivablePaymentsData: any[];
     shoppingData: any[];
     expensesData: any[];
+    pendingPaymentsData: any[];
+    pendingServicesData: any[];
+    defaulterWashersData: any[];
   }> {
     // 1. Get sales data (quantity * saleValue from products)
     const salesData = await this.salesRepository
@@ -167,6 +173,39 @@ export class ReportsRepository implements IReportsRepository {
       })
       .getMany();
 
+    // 7. Get pending payment attentions (filtered by createAt)
+    const pendingPaymentsData = await this.attentionsRepository
+      .createQueryBuilder('attention')
+      .leftJoinAndSelect('attention.vehicleId', 'vehicle')
+      .leftJoinAndSelect('attention.washerId', 'washer')
+      .where('attention.paymentStatus = :status', { status: 'PENDING' })
+      .andWhere('attention.createAt BETWEEN :startDate AND :endDate', {
+        startDate,
+        endDate,
+      })
+      .getMany();
+
+    // 8. Get pending services (sales-services from PENDING attentions)
+    const pendingAttentionIds = pendingPaymentsData.map(att => att.id);
+    const pendingServicesData = pendingAttentionIds.length > 0
+      ? await this.saleServicesRepository
+          .createQueryBuilder('saleService')
+          .leftJoinAndSelect('saleService.serviceId', 'service')
+          .leftJoinAndSelect('saleService.attentionId', 'attention')
+          .where('saleService.attentionId IN (:...attentionIds)', { attentionIds: pendingAttentionIds })
+          .getMany()
+      : [];
+
+    // 9. Get defaulter washers data (unpaid)
+    const defaulterWashersData = await this.defaulterWashersRepository
+      .createQueryBuilder('defaulterWasher')
+      .where('defaulterWasher.date BETWEEN :startDate AND :endDate', {
+        startDate,
+        endDate,
+      })
+      .andWhere('defaulterWasher.isPaid = :isPaid', { isPaid: false })
+      .getMany();
+
     return {
       salesData,
       servicesSalesData,
@@ -174,6 +213,9 @@ export class ReportsRepository implements IReportsRepository {
       accountsReceivablePaymentsData,
       shoppingData,
       expensesData,
+      pendingPaymentsData,
+      pendingServicesData,
+      defaulterWashersData,
     };
   }
 }

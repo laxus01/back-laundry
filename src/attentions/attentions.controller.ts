@@ -1,6 +1,6 @@
 import { Controller, Get, Param, Post, Body, Put, Delete, UseGuards, Query } from '@nestjs/common';
 import { AttentionsService } from './attentions.service';
-import { CreateAttentionDto, SaleProductDto, SaleServiceDto } from './dto/attention.create-attention.dto';
+import { CreateAttentionDto, SaleProductDto, SaleServiceDto, UpdatePaymentStatusDto } from './dto/attention.create-attention.dto';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 
 @Controller('attentions')
@@ -68,5 +68,17 @@ export class AttentionsController {
     @Delete(':id')
     async deleteAttention(@Param('id') id: string) {
         return this.attentionsService.deleteAttention(id);
+    }
+
+    @UseGuards(JwtAuthGuard)
+    @Get('pending-payments/list')
+    async getPendingPaymentAttentions() {
+        return this.attentionsService.getPendingPaymentAttentions();
+    }
+
+    @UseGuards(JwtAuthGuard)
+    @Post(':id/payment')
+    async updatePaymentStatus(@Param('id') id: string, @Body() paymentData: UpdatePaymentStatusDto) {
+        return this.attentionsService.updatePaymentStatus(id, paymentData);
     }
 }

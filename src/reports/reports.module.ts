@@ -15,6 +15,7 @@ import { Expense } from '../expenses/entities/expenses.entity';
 import { Shopping } from '../shopping/entities/shopping.entity';
 import { Product } from '../products/entities/products.entity';
 import { Advance } from '../advances/entities/advances.entity';
+import { DefaulterWasher } from '../defaulter-washers/entities/defaulter-washers.entity';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { Advance } from '../advances/entities/advances.entity';
       Shopping,
       Product,
       Advance,
+      DefaulterWasher,
     ]),
   ],
   controllers: [ReportsController],

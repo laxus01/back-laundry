@@ -39,6 +39,9 @@ export class FinancialReportDto implements IFinancialReport {
   summary: {
     netProfit: number;
     profitMargin: string;
+    totalPendingPayments: number;
+    totalPendingServices: number;
+    totalDefaulterWashers: number;
   };
   details: {
     salesCount: number;
@@ -47,6 +50,7 @@ export class FinancialReportDto implements IFinancialReport {
     accountsReceivablePaymentsCount: number;
     shoppingCount: number;
     expensesCount: number;
+    pendingPaymentsCount: number;
   };
 }
 

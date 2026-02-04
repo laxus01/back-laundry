@@ -1,5 +1,6 @@
 import { Entity, Column, PrimaryGeneratedColumn, OneToMany, JoinColumn } from 'typeorm';
 import { Attention } from '../../attentions/entities/attentions.entity';
+import { DefaulterWasher } from '../../defaulter-washers/entities/defaulter-washers.entity';
 
 @Entity({ name: 'washers' })
 export class Washer {
@@ -20,4 +21,7 @@ export class Washer {
 
   @OneToMany(() => Attention, (attention) => attention.washerId)
   attentions: Attention[];
+
+  @OneToMany(() => DefaulterWasher, (defaulterWasher) => defaulterWasher.washerId)
+  defaulterWashers: DefaulterWasher[];
 }

@@ -191,4 +191,64 @@ export class AttentionsService {
     }
     return this.attentionRepository.remove(existingAttention);
   }
+
+  async getPendingPaymentAttentions() {
+    const attentions = await this.attentionRepository
+      .createQueryBuilder('attention')
+      .leftJoinAndSelect('attention.vehicleId', 'vehicle')
+      .leftJoinAndSelect('attention.washerId', 'washer')
+      .leftJoinAndSelect('attention.saleServices', 'saleServices')
+      .leftJoinAndSelect('saleServices.serviceId', 'service')
+      .where('attention.paymentStatus = :status', { status: 'PENDING' })
+      .orderBy('attention.finishDate', 'DESC')
+      .getMany();
+
+    // Get related products for each attention
+    const attentionsWithProducts = await Promise.all(
+      attentions.map(async (attention) => {
+        const products = await this.saleProduct
+          .createQueryBuilder('sale')
+          .leftJoinAndSelect('sale.productId', 'product')
+          .where('sale.attentionId = :attentionId', { attentionId: attention.id })
+          .getMany();
+
+        return {
+          ...attention,
+          products: products.map(sale => ({
+            ...sale.productId,
+            quantity: sale.quantity,
+            saleId: sale.id,
+            saleCreateAt: sale.createAt
+          }))
+        };
+      })
+    );
+
+    return attentionsWithProducts;
+  }
+
+  async updatePaymentStatus(id: string, paymentData: { paymentStatus: string; paymentDate?: Date; notes?: string }) {
+    const attention = await this.attentionRepository.findOne({
+      where: { id },
+    });
+    
+    if (!attention) {
+      throw new Error('Attention not found');
+    }
+
+    // Update payment status
+    attention.paymentStatus = paymentData.paymentStatus as 'PAID' | 'PENDING' | 'PARTIAL';
+    
+    // Update payment date if status is PAID
+    if (paymentData.paymentStatus === 'PAID') {
+      attention.paymentDate = paymentData.paymentDate || new Date();
+    }
+
+    // Update notes if provided
+    if (paymentData.notes) {
+      attention.notes = paymentData.notes;
+    }
+
+    return this.attentionRepository.save(attention);
+  }
 }
