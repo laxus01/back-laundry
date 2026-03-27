@@ -133,7 +133,18 @@ export class ParkingsService {
       const startOfDay = dayjs(startDate).startOf('day').toDate();
       const endOfDay = dayjs(endDate).endOf('day').toDate();
 
-      return await this.parkingsRepository.findByDateRange(startOfDay, endOfDay);
+      const parkings = await this.parkingsRepository.findByDateRange(startOfDay, endOfDay);
+
+      // Calculate and update payment status based on actual balance
+      parkings.forEach(parking => {
+        const totalPaid = parking.parkingPayments.reduce((sum, payment) => sum + payment.value, 0);
+        const balance = parking.value - totalPaid;
+        
+        // Update paymentStatus: 0 = Paid, 1 = Pending
+        parking.paymentStatus = balance <= 0 ? 0 : 1;
+      });
+
+      return parkings;
     } catch (error) {
       this.logger.error(`Error fetching parkings by date range: ${startDate} to ${endDate}`, error.stack);
       throw error;
