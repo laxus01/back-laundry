@@ -15,32 +15,44 @@ export class ParkingPaymentsService {
     private readonly dataSource: DataSource,
   ) {}
 
-  private async updateParkingState(parkingId: string): Promise<void> {
+  private async updateParkingState(parkingId: string, manager?: any): Promise<void> {
     this.logger.log(`Updating parking state for parking ID: ${parkingId}`);
 
     try {
+      const parkingRepo = manager ? manager.getRepository(Parking) : this.dataSource.getRepository(Parking);
+      const paymentRepo = manager ? manager.getRepository(ParkingPayment) : this.dataSource.getRepository(ParkingPayment);
+
       // Get the parking record
-      const parking = await this.parkingsRepository.findById(parkingId);
+      const parking = await parkingRepo.findOne({
+        where: { id: parkingId },
+      });
 
       if (!parking) {
         throw new NotFoundException(`Parking with ID ${parkingId} not found`);
       }
 
       // Calculate total payments for this parking
-      const payments = await this.dataSource.getRepository(ParkingPayment).find({
+      const payments = await paymentRepo.find({
         where: { parkingId },
       });
 
       const totalPaid = payments.reduce((sum, payment) => sum + payment.value, 0);
 
-      // Update state based on payment comparison
-      // state = 0 if fully paid (totalPaid >= parking.value)
-      // state = 1 if not fully paid (totalPaid < parking.value)
-      const newState = totalPaid >= parking.value ? 0 : 1;
+      this.logger.log(`Parking ID: ${parkingId} - Value: ${parking.value}, Total Paid: ${totalPaid}, Current paymentStatus: ${parking.paymentStatus}`);
 
-      if (parking.state !== newState) {
-        await this.parkingsRepository.update(parkingId, { state: newState });
-        this.logger.log(`Parking state updated to ${newState} for parking ID: ${parkingId}`);
+      // Update paymentStatus based on payment comparison
+      // paymentStatus = 0 if fully paid (totalPaid >= parking.value)
+      // paymentStatus = 1 if not fully paid (totalPaid < parking.value)
+      const newPaymentStatus = totalPaid >= parking.value ? 0 : 1;
+
+      this.logger.log(`Calculated new paymentStatus: ${newPaymentStatus} (totalPaid >= value: ${totalPaid >= parking.value})`);
+
+      if (parking.paymentStatus !== newPaymentStatus) {
+        parking.paymentStatus = newPaymentStatus;
+        await parkingRepo.save(parking);
+        this.logger.log(`Parking paymentStatus updated from ${parking.paymentStatus} to ${newPaymentStatus} for parking ID: ${parkingId}`);
+      } else {
+        this.logger.log(`Parking paymentStatus unchanged (already ${parking.paymentStatus}) for parking ID: ${parkingId}`);
       }
     } catch (error) {
       this.logger.error(`Error updating parking state for parking ID: ${parkingId}`, error.stack);
@@ -57,7 +69,7 @@ export class ParkingPaymentsService {
         const savedPayment = await manager.getRepository(ParkingPayment).save(parkingPayment);
 
         // Update parking state after creating payment
-        await this.updateParkingState(createParkingPaymentDto.parkingId);
+        await this.updateParkingState(createParkingPaymentDto.parkingId, manager);
 
         this.logger.log(`Parking payment created successfully with ID: ${savedPayment.id}`);
         return savedPayment;
@@ -94,7 +106,7 @@ export class ParkingPaymentsService {
         // Update parking state after updating payment
         // Use the parkingId from the update data or existing payment
         const parkingId = updateParkingPaymentDto.parkingId || existingPayment.parkingId;
-        await this.updateParkingState(parkingId);
+        await this.updateParkingState(parkingId, manager);
 
         this.logger.log(`Parking payment updated successfully: ${id}`);
         return savedPayment;
@@ -182,7 +194,7 @@ export class ParkingPaymentsService {
         await manager.getRepository(ParkingPayment).remove(payment);
 
         // Update parking state after deleting payment
-        await this.updateParkingState(parkingId);
+        await this.updateParkingState(parkingId, manager);
 
         this.logger.log(`Parking payment deleted successfully: ${id}`);
       } catch (error) {

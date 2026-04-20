@@ -6,6 +6,35 @@ import { IParkingsRepository, PARKINGS_REPOSITORY_TOKEN } from './interfaces/par
 import * as cron from 'cron';
 import * as dayjs from 'dayjs';
 
+export interface SearchParkingsParams {
+  page: number;
+  limit: number;
+  paymentStatus?: number;
+  startDate?: string;
+  endDate?: string;
+  sortBy?: string;
+  sortDirection?: 'ASC' | 'DESC';
+  vehicleId?: string;
+  state?: number;
+  dateInitialFrom?: string;
+  dateInitialTo?: string;
+  dateFinalFrom?: string;
+  dateFinalTo?: string;
+  creationDateFrom?: string;
+  creationDateTo?: string;
+}
+
+export interface PaginatedParkingsResponse {
+  items: Parking[];
+  meta: {
+    totalItems: number;
+    itemCount: number;
+    itemsPerPage: number;
+    totalPages: number;
+    currentPage: number;
+  };
+}
+
 @Injectable()
 export class ParkingsService {
   private readonly logger = new Logger(ParkingsService.name);
@@ -147,6 +176,112 @@ export class ParkingsService {
       return parkings;
     } catch (error) {
       this.logger.error(`Error fetching parkings by date range: ${startDate} to ${endDate}`, error.stack);
+      throw error;
+    }
+  }
+  
+  async searchParkings(params: SearchParkingsParams): Promise<PaginatedParkingsResponse> {
+    this.logger.log('Searching parkings with filters and pagination');
+
+    try {
+      const {
+        page,
+        limit,
+        paymentStatus,
+        startDate,
+        endDate,
+        sortBy,
+        sortDirection,
+        vehicleId,
+        state,
+        dateInitialFrom,
+        dateInitialTo,
+        dateFinalFrom,
+        dateFinalTo,
+        creationDateFrom,
+        creationDateTo,
+      } = params;
+
+      const repository = this.dataSource.getRepository(Parking);
+      const query = repository
+        .createQueryBuilder('parking')
+        .leftJoinAndSelect('parking.vehicle', 'vehicle')
+        .leftJoinAndSelect('vehicle.typeVehicle', 'typeVehicle')
+        .leftJoinAndSelect('parking.typeParking', 'typeParking')
+        .leftJoinAndSelect('parking.parkingPayments', 'parkingPayments');
+
+      // Filter by paymentStatus if provided
+      if (typeof paymentStatus === 'number') {
+        query.andWhere('parking.paymentStatus = :paymentStatus', { paymentStatus });
+      }
+
+      // Filter by state if provided (for soft delete or other state management)
+      if (typeof state === 'number') {
+        query.andWhere('parking.state = :state', { state });
+      }
+
+      if (vehicleId) {
+        query.andWhere('parking.vehicleId = :vehicleId', { vehicleId });
+      }
+
+      if (startDate && endDate) {
+        query.andWhere('parking.dateInitial BETWEEN :startDate AND :endDate', { startDate, endDate });
+      }
+
+      if (dateInitialFrom) {
+        query.andWhere('parking.dateInitial >= :dateInitialFrom', { dateInitialFrom });
+      }
+
+      if (dateInitialTo) {
+        query.andWhere('parking.dateInitial <= :dateInitialTo', { dateInitialTo });
+      }
+
+      if (dateFinalFrom) {
+        query.andWhere('parking.dateFinal >= :dateFinalFrom', { dateFinalFrom });
+      }
+
+      if (dateFinalTo) {
+        query.andWhere('parking.dateFinal <= :dateFinalTo', { dateFinalTo });
+      }
+
+      if (creationDateFrom) {
+        query.andWhere('parking.createAt >= :creationDateFrom', { creationDateFrom });
+      }
+
+      if (creationDateTo) {
+        query.andWhere('parking.createAt <= :creationDateTo', { creationDateTo });
+      }
+
+      const allowedSortBy = new Set(['createAt', 'paymentStatus', 'dateInitial', 'dateFinal', 'value']);
+      const sortColumn = sortBy && allowedSortBy.has(sortBy) ? sortBy : 'createAt';
+      const direction: 'ASC' | 'DESC' = sortDirection === 'ASC' ? 'ASC' : 'DESC';
+
+      query.orderBy(`parking.${sortColumn}`, direction);
+
+      const pageNumber = page && page > 0 ? page : 1;
+      const pageSize = limit && limit > 0 ? limit : 10;
+      const skip = (pageNumber - 1) * pageSize;
+
+      query.skip(skip);
+      query.take(pageSize);
+
+      const [items, totalItems] = await query.getManyAndCount();
+
+      const itemCount = items.length;
+      const totalPages = Math.ceil(totalItems / pageSize);
+
+      return {
+        items,
+        meta: {
+          totalItems,
+          itemCount,
+          itemsPerPage: pageSize,
+          totalPages,
+          currentPage: pageNumber,
+        },
+      };
+    } catch (error) {
+      this.logger.error('Error searching parkings', error.stack);
       throw error;
     }
   }

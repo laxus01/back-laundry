@@ -17,6 +17,46 @@ export class ParkingsController {
     }
 
     @UseGuards(JwtAuthGuard)
+    @Get('search')
+    async searchParkings(
+        @Query('page') page?: string,
+        @Query('limit') limit?: string,
+        @Query('paymentStatus') paymentStatus?: string,
+        @Query('startDate') startDate?: string,
+        @Query('endDate') endDate?: string,
+        @Query('sortBy') sortBy?: string,
+        @Query('sortDirection') sortDirection?: 'ASC' | 'DESC',
+        @Query('vehicleId') vehicleId?: string,
+        @Query('state') state?: string,
+        @Query('dateInitialFrom') dateInitialFrom?: string,
+        @Query('dateInitialTo') dateInitialTo?: string,
+        @Query('dateFinalFrom') dateFinalFrom?: string,
+        @Query('dateFinalTo') dateFinalTo?: string,
+        @Query('creationDateFrom') creationDateFrom?: string,
+        @Query('creationDateTo') creationDateTo?: string,
+    ) {
+        const params = {
+            page: page ? parseInt(page, 10) : 1,
+            limit: limit ? parseInt(limit, 10) : 10,
+            paymentStatus: paymentStatus !== undefined ? Number(paymentStatus) : undefined,
+            startDate,
+            endDate,
+            sortBy,
+            sortDirection,
+            vehicleId,
+            state: state !== undefined ? Number(state) : undefined,
+            dateInitialFrom,
+            dateInitialTo,
+            dateFinalFrom,
+            dateFinalTo,
+            creationDateFrom,
+            creationDateTo,
+        };
+
+        return this.parkingsService.searchParkings(params as any);
+    }
+
+    @UseGuards(JwtAuthGuard)
     @Get(':id')
     async getParkingById(@Param('id') id: string) {
         return this.parkingsService.getParkingById(id);
