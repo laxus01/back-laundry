@@ -41,6 +41,7 @@ import { DefaulterWashersModule } from './defaulter-washers/defaulter-washers.mo
         synchronize: configService.get<string>('NODE_ENV') === 'development',
         retryAttempts: 10,
         retryDelay: 3000,
+        timezone: '-05:00',
       }),
       inject: [ConfigService],
     }),
