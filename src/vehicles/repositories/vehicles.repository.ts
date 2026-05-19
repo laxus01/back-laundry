@@ -35,10 +35,24 @@ export class VehiclesRepository implements IVehiclesRepository {
   async create(createVehicleDto: CreateVehicleDto): Promise<Vehicle> {
     const existingVehicle = await this.vehicleRepository.findOne({
       where: { plate: createVehicleDto.plate },
+      relations: ['typeVehicle'],
     });
     
     if (existingVehicle) {
-      throw new Error('La placa ya existe en la base de datos');
+      existingVehicle.state = 1;
+      existingVehicle.client = createVehicleDto.client || existingVehicle.client;
+      existingVehicle.phone = createVehicleDto.phone || existingVehicle.phone;
+      
+      if (createVehicleDto.typeVehicleId) {
+        const typeVehicle = await this.typeVehicleRepository.findOne({
+          where: { id: String(createVehicleDto.typeVehicleId) },
+        });
+        if (typeVehicle) {
+          existingVehicle.typeVehicle = typeVehicle;
+        }
+      }
+      
+      return this.vehicleRepository.save(existingVehicle);
     }
 
     const typeVehicle = await this.typeVehicleRepository.findOne({

@@ -55,11 +55,6 @@ export class VehiclesService {
     this.logger.log(`Creating new vehicle with plate: ${vehicleData.plate}`);
     return this.dataSource.transaction(async (manager) => {
       try {
-        // Check if plate already exists
-        const existingVehicle = await this.vehiclesRepository.findByPlate(vehicleData.plate);
-        if (existingVehicle) {
-          throw new Error('La placa ya existe en la base de datos');
-        }        
         const vehicle = await this.vehiclesRepository.create(vehicleData);
         this.logger.log(`Vehicle created successfully with ID: ${vehicle.id}`);
         return vehicle;
