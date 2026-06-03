@@ -3,6 +3,11 @@ import { DataSource } from 'typeorm';
 import { IReportsRepository, REPORTS_REPOSITORY_TOKEN } from './interfaces/reports-manager.interface';
 import { WasherActivityReportDto, FinancialReportDto } from './dto/reports.dto';
 import * as dayjs from 'dayjs';
+import * as utc from 'dayjs/plugin/utc';
+import * as timezone from 'dayjs/plugin/timezone';
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 @Injectable()
 export class ReportsService {
@@ -18,9 +23,9 @@ export class ReportsService {
     this.logger.log(`Generating washer activity report for washer ${washerId} from ${startDate} to ${endDate}`);
 
     try {
-      // Use dayjs for date manipulation
-      const startOfDay = dayjs(startDate).startOf('day').toDate();
-      const endOfDay = dayjs(endDate).endOf('day').toDate();
+      // Use dayjs with timezone for date manipulation
+      const startOfDay = dayjs.tz(startDate, 'America/Bogota').startOf('day').toDate();
+      const endOfDay = dayjs.tz(endDate, 'America/Bogota').endOf('day').toDate();
 
       // Get data from repository
       const { attentions, sales, saleServices, advances } = await this.reportsRepository.getWasherActivityData(startOfDay, endOfDay, washerId);
@@ -86,9 +91,9 @@ export class ReportsService {
     this.logger.log(`Generating financial report from ${startDate} to ${endDate}`);
 
     try {
-      // Use dayjs for date manipulation
-      const startOfDay = dayjs(startDate).startOf('day').toDate();
-      const endOfDay = dayjs(endDate).endOf('day').toDate();
+      // Use dayjs with timezone for date manipulation
+      const startOfDay = dayjs.tz(startDate, 'America/Bogota').startOf('day').toDate();
+      const endOfDay = dayjs.tz(endDate, 'America/Bogota').endOf('day').toDate();
 
       // Get data from repository
       const {
