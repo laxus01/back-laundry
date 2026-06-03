@@ -5,6 +5,11 @@ import { Expense } from '../entities/expenses.entity';
 import { CreateExpenseDto, UpdateExpenseDto } from '../dto/create-expense.dto';
 import { IExpensesRepository, IDateRangeQuery } from '../interfaces/expenses-manager.interface';
 import * as dayjs from 'dayjs';
+import * as utc from 'dayjs/plugin/utc';
+import * as timezone from 'dayjs/plugin/timezone';
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 @Injectable()
 export class ExpensesRepository implements IExpensesRepository {
@@ -40,9 +45,12 @@ export class ExpensesRepository implements IExpensesRepository {
   }
 
   async create(expenseData: CreateExpenseDto): Promise<Expense> {
+    const localDate = dayjs().tz('America/Bogota').format('YYYY-MM-DD');
+    const localTime = dayjs().tz('America/Bogota').toDate();
     const newExpense = this.expenseRepository.create({
       ...expenseData,
-      date: expenseData.date || new Date(),
+      date: expenseData.date || localDate,
+      createAt: localTime,
     });
 
     return this.expenseRepository.save(newExpense);

@@ -4,6 +4,12 @@ import { Repository, Between } from 'typeorm';
 import { Advance } from '../entities/advances.entity';
 import { CreateAdvanceDto, UpdateAdvanceDto } from '../dto/create-advance.dto';
 import { IAdvancesRepository } from '../interfaces/advances-manager.interface';
+import * as dayjs from 'dayjs';
+import * as utc from 'dayjs/plugin/utc';
+import * as timezone from 'dayjs/plugin/timezone';
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 @Injectable()
 export class AdvancesRepository implements IAdvancesRepository {
@@ -32,7 +38,13 @@ export class AdvancesRepository implements IAdvancesRepository {
   }
 
   async createAdvance(advance: CreateAdvanceDto): Promise<Advance> {
-    const newAdvance = this.advanceRepository.create(advance);
+    const localDate = dayjs().tz('America/Bogota').format('YYYY-MM-DD');
+    const localTime = dayjs().tz('America/Bogota').toDate();
+    const newAdvance = this.advanceRepository.create({
+      ...advance,
+      date: advance.date || localDate,
+      createAt: localTime,
+    });
     return this.advanceRepository.save(newAdvance);
   }
 

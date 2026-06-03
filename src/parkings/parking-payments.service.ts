@@ -4,6 +4,12 @@ import { ParkingPayment } from './entities/parking-payments.entity';
 import { Parking } from './entities/parkings.entity';
 import { CreateParkingPaymentDto, UpdateParkingPaymentDto } from './dto/parking-payment.dto';
 import { IParkingsRepository, PARKINGS_REPOSITORY_TOKEN } from './interfaces/parkings-manager.interface';
+import * as dayjs from 'dayjs';
+import * as utc from 'dayjs/plugin/utc';
+import * as timezone from 'dayjs/plugin/timezone';
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 @Injectable()
 export class ParkingPaymentsService {
@@ -65,7 +71,13 @@ export class ParkingPaymentsService {
 
     return this.dataSource.transaction(async (manager) => {
       try {
-        const parkingPayment = manager.getRepository(ParkingPayment).create(createParkingPaymentDto);
+        const localDate = dayjs().tz('America/Bogota').format('YYYY-MM-DD');
+        const localTime = dayjs().tz('America/Bogota').toDate();
+        const parkingPayment = manager.getRepository(ParkingPayment).create({
+          ...createParkingPaymentDto,
+          date: createParkingPaymentDto.date || localDate,
+          createAt: localTime,
+        });
         const savedPayment = await manager.getRepository(ParkingPayment).save(parkingPayment);
 
         // Update parking state after creating payment

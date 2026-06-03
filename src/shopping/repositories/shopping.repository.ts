@@ -5,6 +5,11 @@ import { Shopping } from '../entities/shopping.entity';
 import { CreateShoppingDto, UpdateShoppingDto } from '../dto/create-shopping.dto';
 import { IShoppingRepository, IDateRangeQuery } from '../interfaces/shopping-manager.interface';
 import * as dayjs from 'dayjs';
+import * as utc from 'dayjs/plugin/utc';
+import * as timezone from 'dayjs/plugin/timezone';
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 @Injectable()
 export class ShoppingRepository implements IShoppingRepository {
@@ -43,9 +48,12 @@ export class ShoppingRepository implements IShoppingRepository {
   }
 
   async create(shoppingData: CreateShoppingDto): Promise<Shopping> {
+    const localDate = dayjs().tz('America/Bogota').format('YYYY-MM-DD');
+    const localTime = dayjs().tz('America/Bogota').toDate();
     const newShopping = this.shoppingRepository.create({
       ...shoppingData,
-      date: shoppingData.date || new Date(),
+      date: shoppingData.date || localDate,
+      createAt: localTime,
     });
 
     return this.shoppingRepository.save(newShopping);

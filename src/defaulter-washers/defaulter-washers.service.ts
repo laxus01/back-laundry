@@ -3,6 +3,12 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Between } from 'typeorm';
 import { DefaulterWasher } from './entities/defaulter-washers.entity';
 import { CreateDefaulterWasherDto, UpdateDefaulterWasherDto } from './dto/create-defaulter-washer.dto';
+import * as dayjs from 'dayjs';
+import * as utc from 'dayjs/plugin/utc';
+import * as timezone from 'dayjs/plugin/timezone';
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 @Injectable()
 export class DefaulterWashersService {
@@ -42,9 +48,12 @@ export class DefaulterWashersService {
   }
 
   async createDefaulterWasher(createDto: CreateDefaulterWasherDto): Promise<DefaulterWasher> {
+    const localDate = dayjs().tz('America/Bogota').format('YYYY-MM-DD');
+    const localTime = dayjs().tz('America/Bogota').toDate();
     const defaulterWasher = this.defaulterWasherRepository.create({
       ...createDto,
-      date: createDto.date || new Date(),
+      date: createDto.date || localDate,
+      createAt: localTime,
     });
 
     return this.defaulterWasherRepository.save(defaulterWasher);

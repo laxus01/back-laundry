@@ -12,6 +12,11 @@ import { exec } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as dayjs from 'dayjs';
+import * as utc from 'dayjs/plugin/utc';
+import * as timezone from 'dayjs/plugin/timezone';
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 @Injectable()
 export class AttentionsService {
@@ -119,7 +124,11 @@ export class AttentionsService {
   }
 
   async createAttention(attention: CreateAttentionDto) {
-    const newAttention = this.attentionRepository.create(attention);
+    const localTime = dayjs().tz('America/Bogota').toDate();
+    const newAttention = this.attentionRepository.create({
+      ...attention,
+      createAt: localTime,
+    });
     return this.attentionRepository.save(newAttention);
   }
 
@@ -129,9 +138,13 @@ export class AttentionsService {
     });
     if (!attention) {
       throw new Error('Attention not found');
-    }    
-    const newSalesServices = salesServices.map((saleService: SaleServiceDto) => {      
-      const newSaleService = this.saleService.create(saleService);
+    }
+    const localTime = dayjs().tz('America/Bogota').toDate();
+    const newSalesServices = salesServices.map((saleService: SaleServiceDto) => {
+      const newSaleService = this.saleService.create({
+        ...saleService,
+        createAt: localTime,
+      });
       return this.saleService.save(newSaleService);
     });
     return newSalesServices;
@@ -144,11 +157,13 @@ export class AttentionsService {
     if (!attention) {
       throw new Error('Attention not found');
     }
+    const localDate = dayjs().tz('America/Bogota').format('YYYY-MM-DD');
+    const localTime = dayjs().tz('America/Bogota').toDate();
     const newSales = sales.map(async (sale: SaleProductDto) => {
-      // Set current date if no date is provided
       const saleData = {
         ...sale,
-        date: sale.date || new Date()
+        date: sale.date || localDate,
+        createAt: localTime,
       };
       const newSale = this.saleProduct.create(saleData);
       await this.decreaseProductExistence(sale.productId, sale.quantity);
@@ -241,7 +256,8 @@ export class AttentionsService {
     
     // Update payment date if status is PAID
     if (paymentData.paymentStatus === 'PAID') {
-      attention.paymentDate = paymentData.paymentDate || new Date();
+      const localTime = dayjs().tz('America/Bogota').toDate();
+      attention.paymentDate = paymentData.paymentDate || localTime;
     }
 
     // Update notes if provided

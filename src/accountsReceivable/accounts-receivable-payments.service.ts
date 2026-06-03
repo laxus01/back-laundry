@@ -4,6 +4,12 @@ import { Repository } from 'typeorm';
 import { AccountsReceivablePayment } from './entities/accounts-receivable-payments.entity';
 import { AccountsReceivable } from './entities/accounts-receivable.entity';
 import { CreateAccountsReceivablePaymentDto, UpdateAccountsReceivablePaymentDto } from './dto/accounts-receivable-payment.dto';
+import * as dayjs from 'dayjs';
+import * as utc from 'dayjs/plugin/utc';
+import * as timezone from 'dayjs/plugin/timezone';
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 @Injectable()
 export class AccountsReceivablePaymentsService {
@@ -42,7 +48,13 @@ export class AccountsReceivablePaymentsService {
   }
 
   async createAccountsReceivablePayment(createAccountsReceivablePaymentDto: CreateAccountsReceivablePaymentDto): Promise<AccountsReceivablePayment> {
-    const accountsReceivablePayment = this.accountsReceivablePaymentRepository.create(createAccountsReceivablePaymentDto);
+    const localDate = dayjs().tz('America/Bogota').format('YYYY-MM-DD');
+    const localTime = dayjs().tz('America/Bogota').toDate();
+    const accountsReceivablePayment = this.accountsReceivablePaymentRepository.create({
+      ...createAccountsReceivablePaymentDto,
+      date: createAccountsReceivablePaymentDto.date || localDate,
+      createAt: localTime,
+    });
     const savedPayment = await this.accountsReceivablePaymentRepository.save(accountsReceivablePayment);
     
     // Update accounts receivable state after creating payment

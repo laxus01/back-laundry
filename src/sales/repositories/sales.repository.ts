@@ -5,6 +5,11 @@ import { Sale } from '../entities/sales.entity';
 import { CreateSaleDto, UpdateSaleDto } from '../dto/sale.dto';
 import { ISalesRepository, IDateRangeQuery } from '../interfaces/inventory-manager.interface';
 import * as dayjs from 'dayjs';
+import * as utc from 'dayjs/plugin/utc';
+import * as timezone from 'dayjs/plugin/timezone';
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 @Injectable()
 export class SalesRepository implements ISalesRepository {
@@ -38,9 +43,12 @@ export class SalesRepository implements ISalesRepository {
   }
 
   async create(saleData: CreateSaleDto): Promise<Sale> {
+    const localDate = dayjs().tz('America/Bogota').format('YYYY-MM-DD');
+    const localTime = dayjs().tz('America/Bogota').toDate();
     const newSale = this.saleRepository.create({
       ...saleData,
-      date: saleData.date || new Date(),
+      date: saleData.date || localDate,
+      createAt: localTime,
     });
 
     return this.saleRepository.save(newSale);
