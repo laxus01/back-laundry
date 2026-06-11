@@ -200,10 +200,26 @@ export class AttentionsService {
   async deleteAttention(id: string) {
     const existingAttention = await this.attentionRepository.findOne({
       where: { id },
+      relations: ['saleServices'],
     });
     if (!existingAttention) {
       throw new Error('Attention not found');
     }
+
+    // Eliminar primero los saleServices relacionados
+    if (existingAttention.saleServices && existingAttention.saleServices.length > 0) {
+      await this.saleService.remove(existingAttention.saleServices);
+    }
+
+    // Eliminar los sales (productos) relacionados
+    const relatedSales = await this.saleProduct.find({
+      where: { attentionId: { id } as any },
+    });
+    if (relatedSales && relatedSales.length > 0) {
+      await this.saleProduct.remove(relatedSales);
+    }
+
+    // Finalmente eliminar la atención
     return this.attentionRepository.remove(existingAttention);
   }
 
