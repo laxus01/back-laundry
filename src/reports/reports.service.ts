@@ -129,9 +129,9 @@ export class ReportsService {
         return sum + payment.value;
       }, 0);
 
-      // 5. Calculate total shopping costs (quantity * valueBuys from products)
+      // 5. Calculate total shopping costs (quantity * unitPrice from shopping record)
       const totalShoppingCosts = shoppingData.reduce((sum, shopping) => {
-        return sum + (shopping.quantity * (shopping.product?.valueBuys || 0));
+        return sum + (shopping.quantity * (shopping.unitPrice || 0));
       }, 0);
 
       // 6. Calculate total expenses

@@ -15,6 +15,9 @@ export class Shopping {
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   createAt: Date;
 
+  @Column({ type: 'int', default: 0 })
+  unitPrice: number;
+
   @Column('uuid')
   productId: string;
 

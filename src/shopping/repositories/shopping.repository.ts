@@ -50,8 +50,20 @@ export class ShoppingRepository implements IShoppingRepository {
   async create(shoppingData: CreateShoppingDto): Promise<Shopping> {
     const localDate = dayjs().tz('America/Bogota').format('YYYY-MM-DD');
     const localTime = dayjs().tz('America/Bogota').toDate();
+
+    let unitPrice = shoppingData.unitPrice;
+
+    if (unitPrice === undefined || unitPrice === null) {
+      const product = await this.shoppingRepository.manager.findOne(
+        'Product',
+        { where: { id: shoppingData.productId } }
+      ) as any;
+      unitPrice = product?.valueBuys || 0;
+    }
+
     const newShopping = this.shoppingRepository.create({
       ...shoppingData,
+      unitPrice,
       date: shoppingData.date || localDate,
       createAt: localTime,
     });
