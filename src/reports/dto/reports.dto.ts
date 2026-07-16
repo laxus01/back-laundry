@@ -54,15 +54,6 @@ export class FinancialReportDto implements IFinancialReport {
     expensesCount: number;
     pendingPaymentsCount: number;
   };
-  defaulterWashers: {
-    id: string;
-    amount: number;
-    description: string;
-    date: string;
-    isPaid: boolean;
-    washerId: string;
-    washerName: string;
-  }[];
 }
 
 export class GetWasherActivityReportDto {
