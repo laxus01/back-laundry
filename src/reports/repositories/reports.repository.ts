@@ -197,14 +197,13 @@ export class ReportsRepository implements IReportsRepository {
           .getMany()
       : [];
 
-    // 9. Get defaulter washers data (unpaid)
+    // 9. Get all unpaid defaulter washers (no date filter — includes historical debts)
     const defaulterWashersData = await this.defaulterWashersRepository
       .createQueryBuilder('defaulterWasher')
-      .where('defaulterWasher.date BETWEEN :startDate AND :endDate', {
-        startDate,
-        endDate,
-      })
-      .andWhere('defaulterWasher.isPaid = :isPaid', { isPaid: false })
+      .leftJoinAndSelect('defaulterWasher.washer', 'washer')
+      .where('defaulterWasher.isPaid = :isPaid', { isPaid: false })
+      .orderBy('washer.washer', 'ASC')
+      .addOrderBy('defaulterWasher.date', 'ASC')
       .getMany();
 
     // 10. Get all attentions with services to calculate washer cost (regardless of payment status)

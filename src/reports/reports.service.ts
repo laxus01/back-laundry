@@ -200,6 +200,15 @@ export class ReportsService {
           expensesCount: expensesData.length,
           pendingPaymentsCount: pendingPaymentsData.length,
         },
+        defaulterWashers: defaulterWashersData.map((dw) => ({
+          id: dw.id,
+          amount: dw.amount,
+          description: dw.description,
+          date: dw.date,
+          isPaid: dw.isPaid,
+          washerId: dw.washerId,
+          washerName: dw.washer?.washer || '',
+        })),
       };
 
       this.logger.log(`Financial report generated successfully for period ${startDate} to ${endDate}`);

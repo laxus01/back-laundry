@@ -20,16 +20,19 @@ export class DefaulterWashersService {
   async getDefaulterWashers(startDate?: string, endDate?: string): Promise<DefaulterWasher[]> {
     const queryBuilder = this.defaulterWasherRepository
       .createQueryBuilder('defaulterWasher')
-      .leftJoinAndSelect('defaulterWasher.washer', 'washer');
+      .leftJoinAndSelect('defaulterWasher.washer', 'washer')
+      .where('defaulterWasher.isPaid = :isPaid', { isPaid: false });
 
     if (startDate && endDate) {
-      queryBuilder.where('defaulterWasher.date BETWEEN :startDate AND :endDate', {
+      queryBuilder.andWhere('defaulterWasher.date BETWEEN :startDate AND :endDate', {
         startDate,
         endDate,
       });
     }
 
-    queryBuilder.orderBy('defaulterWasher.createAt', 'DESC');
+    queryBuilder
+      .orderBy('washer.washer', 'ASC')
+      .addOrderBy('defaulterWasher.date', 'ASC');
 
     return queryBuilder.getMany();
   }
