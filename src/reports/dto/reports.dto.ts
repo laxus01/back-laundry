@@ -34,6 +34,8 @@ export class FinancialReportDto implements IFinancialReport {
   costs: {
     totalShoppingCosts: number;
     totalExpenses: number;
+    totalPendingServicesDeduction: number;
+    totalWashersCost: number;
     totalCosts: number;
   };
   summary: {

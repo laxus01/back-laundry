@@ -32,6 +32,8 @@ export interface IFinancialReport {
   costs: {
     totalShoppingCosts: number;
     totalExpenses: number;
+    totalPendingServicesDeduction: number;
+    totalWashersCost: number;
     totalCosts: number;
   };
   summary: {
@@ -70,6 +72,7 @@ export interface IReportsRepository {
     pendingPaymentsData: any[];
     pendingServicesData: any[];
     defaulterWashersData: any[];
+    allAttentionsData: any[];
   }>;
 }
 

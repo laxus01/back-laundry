@@ -116,6 +116,7 @@ export class ReportsRepository implements IReportsRepository {
     pendingPaymentsData: any[];
     pendingServicesData: any[];
     defaulterWashersData: any[];
+    allAttentionsData: any[];
   }> {
     // 1. Get sales data (quantity * saleValue from products)
     const salesData = await this.salesRepository
@@ -206,6 +207,16 @@ export class ReportsRepository implements IReportsRepository {
       .andWhere('defaulterWasher.isPaid = :isPaid', { isPaid: false })
       .getMany();
 
+    // 10. Get all attentions with services to calculate washer cost (regardless of payment status)
+    const allAttentionsData = await this.attentionsRepository
+      .createQueryBuilder('attention')
+      .leftJoinAndSelect('attention.saleServices', 'saleServices')
+      .where('attention.createAt BETWEEN :startDate AND :endDate', {
+        startDate,
+        endDate,
+      })
+      .getMany();
+
     return {
       salesData,
       servicesSalesData,
@@ -216,6 +227,7 @@ export class ReportsRepository implements IReportsRepository {
       pendingPaymentsData,
       pendingServicesData,
       defaulterWashersData,
+      allAttentionsData,
     };
   }
 }

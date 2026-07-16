@@ -106,6 +106,7 @@ export class ReportsService {
         pendingPaymentsData,
         pendingServicesData,
         defaulterWashersData,
+        allAttentionsData,
       } = await this.reportsRepository.getFinancialReportData(startOfDay, endOfDay);
 
       // 1. Calculate total sales (quantity * saleValue from products)
@@ -153,9 +154,15 @@ export class ReportsService {
         return sum + (defaulter.amount || 0);
       }, 0);
 
+      // 10. Calculate total washers cost (percentage of all services rendered)
+      const totalWashersCost = allAttentionsData.reduce((sum, attention) => {
+        const totalServiceValue = attention.saleServices?.reduce((s, ss) => s + (ss.value || 0), 0) || 0;
+        return sum + (totalServiceValue * attention.percentage) / 100;
+      }, 0);
+
       // Calculate total income and net profit
       const totalIncome = totalSales + totalServiceSales + totalParkingPayments + totalAccountsReceivablePayments;
-      const totalCosts = totalShoppingCosts + totalExpenses;
+      const totalCosts = totalShoppingCosts + totalExpenses + totalPendingServices + totalWashersCost;
       const netProfit = totalIncome - totalCosts;
 
       const report: FinancialReportDto = {
@@ -173,6 +180,8 @@ export class ReportsService {
         costs: {
           totalShoppingCosts,
           totalExpenses,
+          totalPendingServicesDeduction: totalPendingServices,
+          totalWashersCost,
           totalCosts,
         },
         summary: {
