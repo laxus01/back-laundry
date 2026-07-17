@@ -117,6 +117,7 @@ export class ReportsRepository implements IReportsRepository {
     pendingServicesData: any[];
     defaulterWashersData: any[];
     allAttentionsData: any[];
+    deferredPaymentsData: any[];
   }> {
     // 1. Get sales data (quantity * saleValue from products)
     const salesData = await this.salesRepository
@@ -128,7 +129,7 @@ export class ReportsRepository implements IReportsRepository {
       })
       .getMany();
 
-    // 2. Get service sales from sales-services entity
+    // 2. Get service sales from sales-services entity (only services created in this period)
     const servicesSalesData = await this.saleServicesRepository
       .createQueryBuilder('saleService')
       .where('saleService.createAt BETWEEN :startDate AND :endDate', {
@@ -206,7 +207,8 @@ export class ReportsRepository implements IReportsRepository {
       .addOrderBy('defaulterWasher.date', 'ASC')
       .getMany();
 
-    // 10. Get all attentions with services to calculate washer cost (regardless of payment status)
+    // 10. Get all attentions with services to calculate washer cost
+    // Include attentions created in this period OR paid in this period
     const allAttentionsData = await this.attentionsRepository
       .createQueryBuilder('attention')
       .leftJoinAndSelect('attention.saleServices', 'saleServices')
@@ -214,6 +216,27 @@ export class ReportsRepository implements IReportsRepository {
         startDate,
         endDate,
       })
+      .orWhere('(attention.paymentDate BETWEEN :startDate AND :endDate AND attention.paymentStatus IN (:...paidStatuses))', {
+        startDate,
+        endDate,
+        paidStatuses: ['PAID', 'PARTIAL'],
+      })
+      .getMany();
+
+    // 11. Get deferred payments (attentions paid in this period where paymentDate > createAt)
+    const deferredPaymentsData = await this.attentionsRepository
+      .createQueryBuilder('attention')
+      .leftJoinAndSelect('attention.saleServices', 'saleServices')
+      .leftJoinAndSelect('attention.vehicleId', 'vehicle')
+      .leftJoinAndSelect('attention.washerId', 'washer')
+      .where('attention.paymentDate BETWEEN :startDate AND :endDate', {
+        startDate,
+        endDate,
+      })
+      .andWhere('attention.paymentStatus IN (:...paidStatuses)', {
+        paidStatuses: ['PAID', 'PARTIAL'],
+      })
+      .andWhere('attention.paymentDate > attention.createAt')
       .getMany();
 
     return {
@@ -227,6 +250,7 @@ export class ReportsRepository implements IReportsRepository {
       pendingServicesData,
       defaulterWashersData,
       allAttentionsData,
+      deferredPaymentsData,
     };
   }
 }

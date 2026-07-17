@@ -29,6 +29,7 @@ export class FinancialReportDto implements IFinancialReport {
     totalServiceSales: number;
     totalParkingPayments: number;
     totalAccountsReceivablePayments: number;
+    totalDeferredPayments: number;
     totalIncome: number;
   };
   costs: {

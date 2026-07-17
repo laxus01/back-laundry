@@ -27,6 +27,7 @@ export interface IFinancialReport {
     totalServiceSales: number;
     totalParkingPayments: number;
     totalAccountsReceivablePayments: number;
+    totalDeferredPayments: number;
     totalIncome: number;
   };
   costs: {
@@ -73,6 +74,7 @@ export interface IReportsRepository {
     pendingServicesData: any[];
     defaulterWashersData: any[];
     allAttentionsData: any[];
+    deferredPaymentsData: any[];
   }>;
 }
 
